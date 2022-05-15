@@ -5,6 +5,7 @@
         "node": true
     },
     "extends": [
+        "plugin:@next/next/recommended",
         "plugin:react/recommended",
         "airbnb"
     ],
@@ -16,8 +17,11 @@
         "sourceType": "module"
     },
     "plugins": [
-        "react"
+        "react", "baseui"
     ],
     "rules": {
+        "baseui/deprecated-theme-api": "warn",
+        "baseui/deprecated-component-api": "warn",
+        "baseui/no-deep-imports": "warn"
     }
 }
