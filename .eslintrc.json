@@ -25,6 +25,7 @@
         "baseui/no-deep-imports": "warn",
         "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx", ".tsx"] }],
         "react/jsx-props-no-spreading": "off",
-        "func-names": ["error", "as-needed"]
+        "func-names": ["error", "as-needed"],
+        "no-underscore-dangle": "off"
     }
 }
