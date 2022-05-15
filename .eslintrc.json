@@ -23,6 +23,8 @@
         "baseui/deprecated-theme-api": "warn",
         "baseui/deprecated-component-api": "warn",
         "baseui/no-deep-imports": "warn",
-        "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx", ".tsx"] }]
+        "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx", ".tsx"] }],
+        "react/jsx-props-no-spreading": "off",
+        "func-names": ["error", "as-needed"]
     }
 }

@@ -1,3 +1,4 @@
+/* eslint-disable react/no-array-index-key */
 import React from 'react';
 import Document, {
   Html, Head, Main, NextScript,
@@ -8,6 +9,7 @@ import styletron from '../lib/styletron';
 class MyDocument extends Document {
   static getInitialProps = async (context) => {
     const renderPage = () => context.renderPage({
+      // eslint-disable-next-line func-names
       enhanceApp: (App) => function (props) {
         return (
           <StyletronProvider value={styletron}>
