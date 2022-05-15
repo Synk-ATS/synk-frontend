@@ -12,6 +12,7 @@
     "@apollo/client": "^3.6.2",
     "baseui": "^11.0.3",
     "deepmerge": "^4.2.2",
+    "graphql": "^16.5.0",
     "next": "12.1.6",
     "react": "18.1.0",
     "react-dom": "18.1.0",
