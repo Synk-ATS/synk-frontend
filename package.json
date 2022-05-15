@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@apollo/client": "^3.6.2",
     "baseui": "^11.0.3",
     "next": "12.1.6",
     "react": "18.1.0",
