@@ -3,29 +3,37 @@ import { Navigation } from 'baseui/side-navigation';
 
 const items = [
   {
-    title: 'Colors',
-    itemId: '#colors',
+    title: 'Attendance',
+    itemId: '#attendance',
     subNav: [
       {
-        title: 'Primary',
-        itemId: '#primary',
+        title: 'Daily Attendance',
+        itemId: '#daily-attendance',
       },
       {
-        title: 'Shades',
-        itemId: '#shades',
-        subNav: [
-          {
-            title: 'Dark',
-            itemId: '#dark',
-          },
-          {
-            title: 'Disabled',
-            itemId: '#disabled',
-            disabled: true,
-          },
-        ],
+        title: 'Monthly Report',
+        itemId: '#monthly-report',
+      },
+      {
+        title: 'Summary Report',
+        itemId: '#summary-report',
       },
     ],
+  },
+  {
+    title: 'Students',
+    itemId: '#students',
+    subNav: [],
+  },
+  {
+    title: 'Users',
+    itemId: '#users',
+    subNav: [],
+  },
+  {
+    title: 'Settings',
+    itemId: '#settings',
+    subNav: [],
   },
 ];
 
@@ -45,7 +53,10 @@ function SideBar() {
             position: 'fixed',
           }),
         },
-
+        NavItem: {
+          style: ({
+          }),
+        },
       }}
     />
 
