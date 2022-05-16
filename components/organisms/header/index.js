@@ -1,8 +1,15 @@
 import React from 'react';
+import { useStyletron } from 'baseui';
 
 function Header() {
+  const [css, theme] = useStyletron();
+
   return (
-    <header>
+    <header className={css({
+      height: '100px',
+      backgroundColor: theme.colors.mono100,
+    })}
+    >
       l
     </header>
   );
