@@ -15,6 +15,7 @@ import { useApollo } from '../lib/apollo';
 import '../styles/globals.css';
 
 function MyApp({ Component, pageProps }) {
+  const getLayout = Component.getLayout ?? ((page) => page);
   const { initialApolloState, initialReduxState } = pageProps;
   const client = useApollo(initialApolloState);
   const _store = synkStore(initialReduxState);
@@ -26,7 +27,7 @@ function MyApp({ Component, pageProps }) {
         <ApolloProvider client={client}>
           <StyletronProvider value={styletron}>
             <BaseProvider theme={SynkTheme}>
-              <Component {...pageProps} />
+              {getLayout(<Component {...pageProps} />)}
             </BaseProvider>
           </StyletronProvider>
         </ApolloProvider>
