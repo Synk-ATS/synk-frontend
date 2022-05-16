@@ -3,6 +3,7 @@ import Head from 'next/head';
 import Image from 'next/image';
 import styles from '../styles/Home.module.css';
 import Layout from '../components/layout';
+import SideBar from '../components/layout/side-bar';
 
 export default function Home() {
   return (
@@ -76,6 +77,9 @@ export default function Home() {
 
 Home.getLayout = function getLayout(page) {
   return (
-    <Layout>{page}</Layout>
+    <Layout>
+      <SideBar />
+      {page}
+    </Layout>
   );
 };

@@ -36,6 +36,17 @@ function SideBar() {
       items={items}
       activeItemId={activeItemId}
       onChange={({ item }) => setActiveItemId(item.itemId)}
+      overrides={{
+        Root: {
+          style: ({
+            height: '100%',
+            width: '250px',
+            backgroundColor: '#222222',
+            position: 'fixed',
+          }),
+        },
+
+      }}
     />
 
   );
