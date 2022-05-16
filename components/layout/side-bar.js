@@ -7,6 +7,7 @@ import {
 } from 'phosphor-react';
 import { useRouter } from 'next/router';
 import { toggleIsExpanded, TreeView } from 'baseui/tree-view';
+import { StyledSideBarNav, TreeLabelOverrides } from './styled-components';
 
 function customLabel(node) {
   const router = useRouter();
@@ -79,17 +80,7 @@ function SideBar() {
   const [css, theme] = useStyletron();
   const [data, setData] = React.useState(items);
   return (
-    <nav className={css({
-      height: '100%',
-      top: 0,
-      width: '250px',
-      backgroundColor: theme.colors.primary,
-      position: 'fixed',
-      borderRightWidth: '3px',
-      borderRightStyle: 'solid',
-      borderRightColor: theme.colors.accent,
-    })}
-    >
+    <StyledSideBarNav>
       <div>
         <Link href="/" passHref>
           <div className={css({
@@ -119,29 +110,10 @@ function SideBar() {
           onToggle={(node) => {
             setData((prevData) => toggleIsExpanded(prevData, node));
           }}
-          overrides={{
-            TreeLabel: {
-              style: ({ $isSelected }) => ({
-                paddingTop: '0.5rem',
-                paddingBottom: '0.5rem',
-                color: theme.colors.mono600,
-                cursor: 'pointer',
-                transitionProperty: 'all',
-                transitionDuration: theme.animation.timing600,
-                borderLeftWidth: '3px',
-                borderLeftStyle: 'solid',
-                borderLeftColor: $isSelected ? theme.colors.accent : 'transparent',
-                backgroundColor: $isSelected ? theme.colors.mono900 : 'transparent',
-                ':hover': {
-                  color: theme.colors.mono800,
-                  backgroundColor: theme.colors.mono900,
-                },
-              }),
-            },
-          }}
+          overrides={{ TreeLabel: { ...TreeLabelOverrides } }}
         />
       </div>
-    </nav>
+    </StyledSideBarNav>
 
   );
 }
