@@ -6,8 +6,16 @@ function Header() {
 
   return (
     <header className={css({
-      height: '100px',
+      maxHeight: '70px',
       backgroundColor: theme.colors.mono100,
+      position: 'sticky',
+      top: 0,
+      marginLeft: '250px',
+      display: 'flex',
+      paddingTop: '25px',
+      paddingRight: '25px',
+      paddingBottom: '25px',
+      paddingLeft: '25px',
     })}
     >
       l
