@@ -3,11 +3,55 @@ body {
   padding: 0;
   margin: 0;
   font-family: 'Poppins', sans-serif;
+  color: #222222;
+  font-size: 14px;
+}
+
+@media screen and (min-width: 320px) and (-webkit-min-device-pixel-ratio:0) {
+  html {
+    font-size: calc(14px + 8 * ((100vw - 320px) / 860));
+  }
+}
+@media screen and (min-width: 1000px) and (-webkit-min-device-pixel-ratio:0) {
+  html {
+    font-size: 14px;
+  }
+}
+
+::-webkit-scrollbar {
+  width: 7px;
+  height: 0;
+}
+
+::-webkit-scrollbar-track {
+  background: #ffffff;
+}
+
+::-webkit-scrollbar-track-piece {
+  background: #ffffff;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #cecece;
+  border-radius: 20px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(34, 34, 34, 0.53);
+}
+
+ul {
+  list-style: none;
+  padding: 0;
+  margin: 0;
 }
 
 a {
   color: inherit;
   text-decoration: none;
+  cursor: pointer;
+  padding: 0;
+  margin: 0;
 }
 
 * {
