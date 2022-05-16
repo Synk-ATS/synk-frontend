@@ -1,13 +1,12 @@
 import React from 'react';
 import { useStyletron } from 'baseui';
-import Link from 'next/link';
-import Image from 'next/image';
 import {
   Checks, GearSix, Layout, Student, Users,
 } from 'phosphor-react';
 import { useRouter } from 'next/router';
 import { toggleIsExpanded, TreeView } from 'baseui/tree-view';
 import { StyledSideBarNav, TreeLabelOverrides } from './styled-components';
+import Logo from '../atoms/logo';
 
 function customLabel(node) {
   const router = useRouter();
@@ -77,42 +76,17 @@ const items = [
 ];
 
 function SideBar() {
-  const [css, theme] = useStyletron();
   const [data, setData] = React.useState(items);
   return (
     <StyledSideBarNav>
-      <div>
-        <Link href="/" passHref>
-          <div className={css({
-            display: 'flex',
-            paddingLeft: '20px',
-            position: 'relative',
-            zIndex: 3,
-            maxHeight: '70px',
-            alignItems: 'center',
-            borderBottomWidth: '3px',
-            borderBottomStyle: 'solid',
-            borderBottomColor: theme.colors.accent,
-          })}
-          >
-            <Image
-              src="/logo-light.svg"
-              alt="Synk Logo"
-              height="80%"
-              width="80%"
-            />
-          </div>
-        </Link>
-      </div>
-      <div>
-        <TreeView
-          data={data}
-          onToggle={(node) => {
-            setData((prevData) => toggleIsExpanded(prevData, node));
-          }}
-          overrides={{ TreeLabel: { ...TreeLabelOverrides } }}
-        />
-      </div>
+      <Logo />
+      <TreeView
+        data={data}
+        onToggle={(node) => {
+          setData((prevData) => toggleIsExpanded(prevData, node));
+        }}
+        overrides={{ TreeLabel: { ...TreeLabelOverrides } }}
+      />
     </StyledSideBarNav>
 
   );
