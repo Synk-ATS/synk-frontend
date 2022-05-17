@@ -88,7 +88,6 @@ function SideBar() {
         overrides={{ TreeLabel: { ...TreeLabelOverrides } }}
       />
     </StyledSideBarNav>
-
   );
 }
 
