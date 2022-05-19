@@ -5,6 +5,7 @@ import {
 } from 'baseui/header-navigation';
 import { Avatar } from 'baseui/avatar';
 import { ParagraphSmall } from 'baseui/typography';
+import { signIn } from 'next-auth/react';
 
 function Header() {
   const options = {
@@ -53,7 +54,10 @@ function Header() {
       </StyledNavigationList>
       <StyledNavigationList $align={ALIGN.center} />
       <StyledNavigationList $align={ALIGN.right}>
-        <StyledNavigationItem style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}>
+        <StyledNavigationItem
+          style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
+          onClick={() => signIn()}
+        >
           <Avatar name="David Michael" size="scale1000" />
           <ParagraphSmall marginTop={0} marginBottom={0} marginLeft="6px">
             Hi, David
