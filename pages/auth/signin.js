@@ -117,7 +117,7 @@ export default function SignIn({ csrfToken }) {
                 },
               }}
               >
-                Admin
+                Administrator
               </Button>
               <Button overrides={{
                 BaseButton: {
@@ -129,7 +129,7 @@ export default function SignIn({ csrfToken }) {
                 },
               }}
               >
-                Teacher/Student
+                Faculty or Student
               </Button>
             </ButtonGroup>
           </Block>
@@ -146,9 +146,9 @@ export default function SignIn({ csrfToken }) {
           justifyContent="center"
         >
           <Block maxWidth="400px" width="100%">
-            <ParagraphXSmall margin={0}>{selected === 0 ? 'Admin' : 'Teacher/Student'}</ParagraphXSmall>
             <HeadingXXLarge $style={{ fontWeight: 'bold' }} marginTop={0} marginBottom="2.5rem">
               Sign In
+              {selected === 0 ? ' as an Administrator' : ' a Faculty or Student'}
             </HeadingXXLarge>
             <form
               onSubmit={handleSubmit}
