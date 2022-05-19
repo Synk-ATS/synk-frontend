@@ -1,7 +1,8 @@
 import React from 'react';
-import { getSession, useSession } from 'next-auth/react';
+import { getSession, signOut, useSession } from 'next-auth/react';
 import { DisplayMedium, ParagraphSmall } from 'baseui/typography';
 import axios from 'axios';
+import { Button } from 'baseui/button';
 import Layout from '../../components/layout';
 
 function Profile({ me }) {
@@ -11,8 +12,8 @@ function Profile({ me }) {
     <>
       {status === 'loading' ? (<ParagraphSmall>Loading...</ParagraphSmall>) : null}
       <div>
-        {/* <DisplayMedium>{session.user.}</DisplayMedium> */}
-        <DisplayMedium>sss</DisplayMedium>
+        <DisplayMedium>{me.firstName}</DisplayMedium>
+        <Button onClick={() => signOut()}>Sign out</Button>
       </div>
     </>
   );
