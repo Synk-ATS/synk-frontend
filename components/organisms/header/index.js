@@ -5,9 +5,10 @@ import {
 } from 'baseui/header-navigation';
 import { Avatar } from 'baseui/avatar';
 import { ParagraphSmall } from 'baseui/typography';
-import { signIn } from 'next-auth/react';
+import { useRouter } from 'next/router';
 
 function Header() {
+  const router = useRouter();
   const options = {
     labelKey: 'id',
     valueKey: 'color',
@@ -56,7 +57,7 @@ function Header() {
       <StyledNavigationList $align={ALIGN.right}>
         <StyledNavigationItem
           style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
-          onClick={() => signIn()}
+          onClick={() => router.push('/auth/profile')}
         >
           <Avatar name="David Michael" size="scale1000" />
           <ParagraphSmall marginTop={0} marginBottom={0} marginLeft="6px">
