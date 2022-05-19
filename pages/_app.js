@@ -8,31 +8,35 @@ import { persistStore } from 'redux-persist';
 import { PersistGate } from 'redux-persist/integration/react';
 import { ApolloProvider } from '@apollo/client';
 import App from 'next/app';
+import { SessionProvider } from 'next-auth/react';
 import styletron from '../lib/styletron';
 import SynkTheme from '../lib/theme';
 import synkStore from '../redux/store';
 import { useApollo } from '../lib/apollo';
 import '../styles/globals.css';
+import 'normalize.css';
 
 function MyApp({ Component, pageProps }) {
   const getLayout = Component.getLayout ?? ((page) => page);
-  const { initialApolloState, initialReduxState } = pageProps;
+  const { initialApolloState, initialReduxState, session } = pageProps;
   const client = useApollo(initialApolloState);
   const _store = synkStore(initialReduxState);
   const persistor = persistStore(_store);
 
   return (
-    <Provider store={_store}>
-      <PersistGate loading={null} persistor={persistor}>
-        <ApolloProvider client={client}>
-          <StyletronProvider value={styletron}>
-            <BaseProvider theme={SynkTheme}>
-              {getLayout(<Component {...pageProps} />)}
-            </BaseProvider>
-          </StyletronProvider>
-        </ApolloProvider>
-      </PersistGate>
-    </Provider>
+    <SessionProvider session={session}>
+      <Provider store={_store}>
+        <PersistGate loading={null} persistor={persistor}>
+          <ApolloProvider client={client}>
+            <StyletronProvider value={styletron}>
+              <BaseProvider theme={SynkTheme}>
+                {getLayout(<Component {...pageProps} />)}
+              </BaseProvider>
+            </StyletronProvider>
+          </ApolloProvider>
+        </PersistGate>
+      </Provider>
+    </SessionProvider>
   );
 }
 
