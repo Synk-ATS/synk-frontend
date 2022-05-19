@@ -1,9 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { getCsrfToken, getSession, signIn } from 'next-auth/react';
-import {
-  HeadingXXLarge, ParagraphLarge, ParagraphSmall, ParagraphXSmall,
-} from 'baseui/typography';
+import { HeadingXXLarge, ParagraphLarge, ParagraphSmall } from 'baseui/typography';
 import { useStyletron } from 'baseui';
 import { FormControl } from 'baseui/form-control';
 import { Input } from 'baseui/input';
