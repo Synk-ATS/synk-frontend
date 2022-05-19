@@ -9,12 +9,14 @@ import { PersistGate } from 'redux-persist/integration/react';
 import { ApolloProvider } from '@apollo/client';
 import App from 'next/app';
 import { SessionProvider } from 'next-auth/react';
+import { useRouter } from 'next/router';
 import styletron from '../lib/styletron';
 import SynkTheme from '../lib/theme';
 import synkStore from '../redux/store';
 import { useApollo } from '../lib/apollo';
 import '../styles/globals.css';
 import 'normalize.css';
+import Loading from '../components/atoms/loading';
 
 function MyApp({ Component, pageProps }) {
   const getLayout = Component.getLayout ?? ((page) => page);
@@ -22,6 +24,25 @@ function MyApp({ Component, pageProps }) {
   const client = useApollo(initialApolloState);
   const _store = synkStore(initialReduxState);
   const persistor = persistStore(_store);
+  const router = useRouter();
+
+  const [loading, setLoading] = React.useState(false);
+
+  React.useEffect(() => {
+    const handleStart = (url) => {
+      if (url !== router.pathname) {
+        setLoading(true);
+      }
+
+      setLoading(false);
+    };
+
+    const handleComplete = () => setLoading(false);
+
+    router.events.on('routeChangeStart', handleStart);
+    router.events.on('routeChangeComplete', handleComplete);
+    router.events.on('routeChangeError', handleComplete);
+  }, [router]);
 
   return (
     <SessionProvider session={session}>
@@ -30,6 +51,7 @@ function MyApp({ Component, pageProps }) {
           <ApolloProvider client={client}>
             <StyletronProvider value={styletron}>
               <BaseProvider theme={SynkTheme}>
+                {/* <Loading loading={loading} /> */}
                 {getLayout(<Component {...pageProps} />)}
               </BaseProvider>
             </StyletronProvider>
