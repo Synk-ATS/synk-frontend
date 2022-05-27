@@ -1,6 +1,17 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import axios from 'axios';
+import { FirebaseAdapter } from '@next-auth/firebase-adapter';
+import { initializeApp, getApp, getApps } from 'firebase/app';
+import {
+  getFirestore, collection, query, getDocs,
+  where, limit, doc, getDoc, addDoc, updateDoc, deleteDoc, runTransaction,
+} from 'firebase/firestore';
+import { getAuth, signInWithEmailAndPassword } from 'firebase/auth';
+import { firebaseConfig } from '../../../lib/firebase';
+
+const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
+const auth = getAuth(app);
+const db = getFirestore(app);
 
 const options = {
   providers: [
@@ -12,12 +23,23 @@ const options = {
       },
       async authorize(credentials) {
         if ('email' in credentials && 'password' in credentials) {
-          const { data } = await axios.post(process.env.AUTH_API, {
-            identifier: credentials.email,
-            password: credentials.password,
-          });
-          const user = data;
+          let user;
 
+          await signInWithEmailAndPassword(
+            auth,
+            credentials.email,
+            credentials.password,
+          ).then((userCredentials) => {
+            user = userCredentials.user;
+          });
+
+          // const { data } = await axios.post(process.env.AUTH_API, {
+          //   identifier: credentials.email,
+          //   password: credentials.password,
+          // });
+          //
+          // const user = login;
+          //
           if (user) {
             return user;
           }
@@ -29,6 +51,20 @@ const options = {
       },
     }),
   ],
+  adapter: FirebaseAdapter({
+    db,
+    collection,
+    query,
+    getDocs,
+    where,
+    limit,
+    doc,
+    getDoc,
+    addDoc,
+    updateDoc,
+    deleteDoc,
+    runTransaction,
+  }),
   session: { strategy: 'jwt' },
   callbacks: {
     async redirect({ url, baseUrl }) {
@@ -40,8 +76,9 @@ const options = {
     },
     async session({ session, token }) {
       const _session = session;
-      _session.jwt = token?.jwt;
+      _session.token = token?.accessToken;
       _session.user = token?.user;
+      _session.expires = token.expires;
       await _session;
       return _session;
     },
@@ -50,9 +87,17 @@ const options = {
       const _token = token;
 
       if (isSignIn) {
-        _token.jwt = user?.jwt;
-        _token.user = user?.user;
+        console.log(user);
+        _token.accessToken = user?.accessToken;
+        _token.user = {
+          uid: user.uid,
+          name: user.displayName,
+          email: user.email,
+          image: user.photoUrl,
+        };
+        _token.expires = user.stsTokenManager.expirationTime;
       }
+
       await _token;
       return _token;
     },
