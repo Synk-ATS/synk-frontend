@@ -5,26 +5,46 @@ import {
 } from 'phosphor-react';
 import { useRouter } from 'next/router';
 import { toggleIsExpanded, TreeView } from 'baseui/tree-view';
-import { StyledSideBarNav, TreeLabelOverrides } from './styled-components';
+import { Block } from 'baseui/block';
+import { StyledSideBarNav } from './styled-components';
 import Logo from '../atoms/logo';
 
 function customLabel(node) {
   const router = useRouter();
   const [css, theme] = useStyletron();
+  const [id, setId] = React.useState(node.id);
+  const [isActive, setIsActive] = React.useState(false);
+
+  React.useEffect(() => {
+    if (router.pathname === id) {
+      setIsActive(true);
+    } else { setIsActive(false); }
+  });
 
   return (
     <div
       role="button"
       tabIndex={0}
-      onClick={() => router.push(node.id)}
-      onKeyDown={() => router.push(node.id)}
+      onClick={() => { setId(node.id); router.push(node.id); }}
+      onKeyDown={() => { setId(node.id); router.push(node.id); }}
       className={css({
         ...theme.typography.ParagraphMedium,
         color: theme.colors.mono200,
         height: '100%',
         width: '100%',
+        paddingTop: '0.5rem',
+        paddingBottom: '0.5rem',
       })}
     >
+      <Block
+        position="absolute"
+        height="100%"
+        top={0}
+        bottom={0}
+        left={0}
+        width="3px"
+        backgroundColor={isActive ? theme.colors.accent : 'transparent'}
+      />
       <div
         className={css({
           outline: 'none',
@@ -32,25 +52,26 @@ function customLabel(node) {
           display: 'flex',
           justifyContent: 'flex-start',
           alignItems: 'center',
+          position: 'relative',
         })}
       >
         <div>{node.icon && node.icon}</div>
         <p className={css({ marginLeft: '5px' })}>{node.title && node.title}</p>
       </div>
+
     </div>
   );
 }
 
 const items = [
   {
-    id: '#dashboard',
+    id: '/',
     title: 'Dashboard',
     label: customLabel,
-    isExpanded: false,
     icon: (<Layout />),
   },
   {
-    id: '#attendance',
+    id: '/attendance',
     title: 'Attendance',
     label: customLabel,
     icon: (<Checks />),
@@ -77,6 +98,7 @@ const items = [
 
 function SideBar() {
   const [data, setData] = React.useState(items);
+
   return (
     <StyledSideBarNav>
       <Logo />
@@ -85,7 +107,25 @@ function SideBar() {
         onToggle={(node) => {
           setData((prevData) => toggleIsExpanded(prevData, node));
         }}
-        overrides={{ TreeLabel: { ...TreeLabelOverrides } }}
+        overrides={{
+          TreeLabel: {
+            style: ({ $theme, $isSelected }) => ({
+              width: '100%',
+              color: $theme.colors.mono600,
+              cursor: 'pointer',
+              transitionProperty: 'all',
+              transitionDuration: $theme.animation.timing600,
+              borderLeftWidth: '3px',
+              borderLeftStyle: 'solid',
+              borderLeftColor: $isSelected ? $theme.colors.accent : 'transparent',
+              backgroundColor: $isSelected ? $theme.colors.mono900 : 'transparent',
+              ':hover': {
+                color: $theme.colors.mono800,
+                backgroundColor: $theme.colors.mono900,
+              },
+            }),
+          },
+        }}
       />
     </StyledSideBarNav>
   );
