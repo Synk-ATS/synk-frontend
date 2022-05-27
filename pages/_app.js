@@ -6,25 +6,33 @@ import { BaseProvider } from 'baseui';
 import { Provider } from 'react-redux';
 import { persistStore } from 'redux-persist';
 import { PersistGate } from 'redux-persist/integration/react';
-import { ApolloProvider } from '@apollo/client';
+import { ApolloProvider, gql } from '@apollo/client';
 import App from 'next/app';
-import { SessionProvider } from 'next-auth/react';
+import { getSession, SessionProvider } from 'next-auth/react';
 import { useRouter } from 'next/router';
+import axios from 'axios';
 import styletron from '../lib/styletron';
 import SynkTheme from '../lib/theme';
 import synkStore from '../redux/store';
-import { useApollo } from '../lib/apollo';
+import { initializeApollo, useApollo } from '../lib/apollo';
+import Loading from '../components/atoms/loading';
+import { getProfile } from '../redux/slices/global.slice';
 import '../styles/globals.css';
 import 'normalize.css';
-import Loading from '../components/atoms/loading';
+import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import { firestore } from '../lib/firebase';
 
 function MyApp({ Component, pageProps }) {
   const getLayout = Component.getLayout ?? ((page) => page);
-  const { initialApolloState, initialReduxState, session } = pageProps;
+  const {
+    initialApolloState, initialReduxState, session, initString,
+  } = pageProps;
   const client = useApollo(initialApolloState);
   const _store = synkStore(initialReduxState);
   const persistor = persistStore(_store);
   const router = useRouter();
+
+  console.log(initString);
 
   const [loading, setLoading] = React.useState(false);
 
@@ -51,7 +59,7 @@ function MyApp({ Component, pageProps }) {
           <ApolloProvider client={client}>
             <StyletronProvider value={styletron}>
               <BaseProvider theme={SynkTheme}>
-                {/* <Loading loading={loading} /> */}
+                <Loading loading={loading} />
                 {getLayout(<Component {...pageProps} />)}
               </BaseProvider>
             </StyletronProvider>
@@ -67,5 +75,17 @@ export default MyApp;
 MyApp.getInitialProps = async (context) => {
   const appProps = await App.getInitialProps(context);
   const _store = synkStore();
-  return { ...appProps, pageProps: { initialReduxState: _store.getState() } };
+  const { dispatch } = _store;
+  const session = await getSession(context);
+  let initString;
+  if (session) {
+    const ref = doc(firestore, 'students', `${session.user.uid}`);
+
+    const docSnap = await getDoc(ref);
+    const student = docSnap.data();
+
+    dispatch(getProfile(student), { payload: student });
+  }
+
+  return { ...appProps, pageProps: { initialReduxState: _store.getState(), initString } };
 };
