@@ -19,9 +19,9 @@ export default function SignIn({ csrfToken }) {
 
   const [selected, setSelected] = React.useState(1);
   const [loading, setLoading] = React.useState(false);
-  const [email, setEmail] = React.useState('');
+  const [email, setEmail] = React.useState('david.michael@synk.io');
   const [emailError, setEmailError] = React.useState('');
-  const [password, setPassword] = React.useState('');
+  const [password, setPassword] = React.useState('Prdha9phd?');
   const [passwordError, setPasswordError] = React.useState('');
   const [loginErrVisible, setLoginErrVisible] = React.useState(false);
 
