@@ -1,18 +1,19 @@
 import React from 'react';
 import { getSession, signOut, useSession } from 'next-auth/react';
-import { DisplayMedium, ParagraphSmall } from 'baseui/typography';
-import axios from 'axios';
 import { Button } from 'baseui/button';
+import { doc, getDoc, getFirestore } from 'firebase/firestore';
+import PropTypes from 'prop-types';
 import Layout from '../../components/layout';
+import Loading from '../../components/atoms/loading';
+import { Student } from '../../models/student';
 
-function Profile({ me }) {
-  const { data: session, status } = useSession();
-  console.log(me);
+function Profile({ student }) {
+  const { status } = useSession();
+
   return (
     <>
-      {status === 'loading' ? (<ParagraphSmall>Loading...</ParagraphSmall>) : null}
+      <Loading loading={status === 'loading'} />
       <div>
-        <DisplayMedium>{me.firstName}</DisplayMedium>
         <Button onClick={() => signOut()}>Sign out</Button>
       </div>
     </>
@@ -20,6 +21,10 @@ function Profile({ me }) {
 }
 
 export default Profile;
+
+Profile.propTypes = {
+  student: PropTypes.instanceOf(Student).isRequired,
+};
 
 Profile.getLayout = function getLayout(page) {
   return (
@@ -42,9 +47,14 @@ export async function getServerSideProps(context) {
     };
   }
 
-  const { data } = await axios.get('http://localhost:1337/api/users/me', {
-    headers: { Authorization: `Bearer ${session.jwt}` },
-  });
+  try {
+    const db = getFirestore();
+    const ref = doc(db, 'students', `${session.user.uid}`);
 
-  return { props: { session, me: data } };
+    const docSnap = await getDoc(ref);
+
+    return { props: { session, student: docSnap.data() } };
+  } catch (e) {
+    return { props: { session } };
+  }
 }
