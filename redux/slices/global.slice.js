@@ -1,6 +1,6 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const initialState = { drawerOpen: false };
+const initialState = { drawerOpen: false, profile: null };
 
 export const globalSlice = createSlice({
   name: 'global',
@@ -8,11 +8,13 @@ export const globalSlice = createSlice({
   reducers: {
     closeDrawer: ((state) => ({ ...state, drawerOpen: initialState.drawerOpen })),
     toggleDrawer: (state, action) => ({ ...state, drawerOpen: action.payload }),
-
+    getProfile: (state, action) => ({
+      ...state, profile: action.payload,
+    }),
   },
 });
 
-export const { closeDrawer, toggleDrawer } = globalSlice.actions;
+export const { closeDrawer, toggleDrawer, getProfile } = globalSlice.actions;
 
 export const selectGlobal = (state) => state.global;
 
