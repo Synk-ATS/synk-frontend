@@ -9,12 +9,14 @@ import {
 import { combineReducers, configureStore } from '@reduxjs/toolkit';
 import storage from 'redux-persist/lib/storage';
 import { globalSlice } from './slices/global.slice';
+import { attendanceSlice } from './slices/attendance.slice';
 
-const globalConfig = { key: 'global', version: 1, storage };
+const attendanceConfig = { key: 'attendance', version: 1, storage };
 
 const synkStore = (preloadedState) => configureStore({
   reducer: combineReducers({
-    global: persistReducer(globalConfig, globalSlice.reducer),
+    global: globalSlice.reducer,
+    attendance: persistReducer(attendanceConfig, attendanceSlice.reducer),
   }),
   middleware: (getDefaultMiddleware) => getDefaultMiddleware({
     serializableCheck: {
