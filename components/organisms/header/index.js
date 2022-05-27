@@ -6,20 +6,25 @@ import {
 import { Avatar } from 'baseui/avatar';
 import { ParagraphSmall } from 'baseui/typography';
 import { useRouter } from 'next/router';
+import { useSelector } from 'react-redux';
+import { selectGlobal } from '../../../redux/slices/global.slice';
 
 function Header() {
   const router = useRouter();
+
+  const { profile } = useSelector(selectGlobal);
+
   const options = {
     labelKey: 'id',
     valueKey: 'color',
-    placeholder: 'Search colors',
+    placeholder: 'Search students',
     maxDropdownHeight: '300px',
-    options: [
-      { id: 'AliceBlue', color: '#F0F8FF' },
-      { id: 'AntiqueWhite', color: '#FAEBD7' },
-      { id: 'Aqua', color: '#00FFFF' },
-      { id: 'Aquamarine', color: '#7FFFD4' },
-    ],
+    // options: [
+    //   { id: 'AliceBlue', color: '#F0F8FF' },
+    //   { id: 'AntiqueWhite', color: '#FAEBD7' },
+    //   { id: 'Aqua', color: '#00FFFF' },
+    //   { id: 'Aquamarine', color: '#7FFFD4' },
+    // ],
   };
 
   return (
@@ -48,7 +53,7 @@ function Header() {
           <Search
             {...options}
             type={TYPE.search}
-            getOptionLabel={({ option }) => option.id || null}
+            // getOptionLabel={({ option }) => option.id || null}
             onChange={() => {}}
           />
         </StyledNavigationItem>
@@ -59,9 +64,9 @@ function Header() {
           style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
           onClick={() => router.push('/auth/profile')}
         >
-          <Avatar name="David Michael" size="scale1000" />
+          <Avatar name={`${profile.firstName} ${profile.lastName}`} size="scale1000" />
           <ParagraphSmall marginTop={0} marginBottom={0} marginLeft="6px">
-            Hi, David
+            {`Hi, ${profile.firstName}`}
           </ParagraphSmall>
         </StyledNavigationItem>
       </StyledNavigationList>
