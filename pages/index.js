@@ -1,6 +1,7 @@
 import React from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
+import { getSession, useSession } from 'next-auth/react';
 import styles from '../styles/Home.module.css';
 import Layout from '../components/layout';
 
@@ -81,3 +82,19 @@ Home.getLayout = function getLayout(page) {
     </Layout>
   );
 };
+
+export async function getServerSideProps(context) {
+  const session = await getSession(context);
+
+  if (!session) {
+    return {
+      redirect: {
+        source: '/index',
+        destination: '/auth/signin',
+        permanent: false,
+      },
+    };
+  }
+
+  return { props: { session } };
+}
