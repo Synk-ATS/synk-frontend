@@ -7,13 +7,16 @@ export const TeacherQuery = gql`
           id
           attributes {
             firstName
+            middleName
             lastName
             facultyId
             email
             gender
+            phone
+            address
+            nationality
             avatar {
               data {
-                id
                 attributes {
                   url
                 }
