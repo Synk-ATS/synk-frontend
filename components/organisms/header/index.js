@@ -7,24 +7,21 @@ import { Avatar } from 'baseui/avatar';
 import { ParagraphSmall } from 'baseui/typography';
 import { useRouter } from 'next/router';
 import { useSelector } from 'react-redux';
-import { selectGlobal } from '../../../redux/slices/global.slice';
+import { selectAuth } from '../../../redux/slices/auth.slice';
 
 function Header() {
   const router = useRouter();
-
-  const { profile } = useSelector(selectGlobal);
+  const {
+    profile: { attributes: { firstName, lastName, avatar } },
+  } = useSelector(selectAuth);
+  const { profile } = useSelector(selectAuth);
+  console.log(profile);
 
   const options = {
     labelKey: 'id',
     valueKey: 'color',
     placeholder: 'Search students',
     maxDropdownHeight: '300px',
-    // options: [
-    //   { id: 'AliceBlue', color: '#F0F8FF' },
-    //   { id: 'AntiqueWhite', color: '#FAEBD7' },
-    //   { id: 'Aqua', color: '#00FFFF' },
-    //   { id: 'Aquamarine', color: '#7FFFD4' },
-    // ],
   };
 
   return (
@@ -39,9 +36,9 @@ function Header() {
             marginLeft: '250px',
             display: 'flex',
             paddingTop: '25px',
-            paddingRight: '25px',
+            paddingRight: '40px',
             paddingBottom: '25px',
-            paddingLeft: '25px',
+            paddingLeft: '40px',
             boxShadow: '0 4px 16px hsla(0, 0%, 0%, 0.05)',
             borderBottomWidth: 0,
           }),
@@ -64,9 +61,9 @@ function Header() {
           style={{ display: 'flex', alignItems: 'center', cursor: 'pointer' }}
           onClick={() => router.push('/auth/profile')}
         >
-          <Avatar name={`${profile.firstName} ${profile.lastName}`} size="scale1000" />
-          <ParagraphSmall marginTop={0} marginBottom={0} marginLeft="6px">
-            {`Hi, ${profile.firstName}`}
+          <Avatar name={`${firstName} ${lastName}`} size="scale900" src={avatar?.data?.attributes?.url} />
+          <ParagraphSmall marginTop={0} marginBottom={0} marginLeft="10px">
+            {`Hi ${firstName}`}
           </ParagraphSmall>
         </StyledNavigationItem>
       </StyledNavigationList>

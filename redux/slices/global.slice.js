@@ -8,9 +8,7 @@ export const globalSlice = createSlice({
   reducers: {
     closeDrawer: ((state) => ({ ...state, drawerOpen: initialState.drawerOpen })),
     toggleDrawer: (state, action) => ({ ...state, drawerOpen: action.payload }),
-    getProfile: (state, action) => ({
-      ...state, profile: action.payload,
-    }),
+    getProfile: (state, action) => ({ ...state, profile: action.payload }),
   },
 });
 

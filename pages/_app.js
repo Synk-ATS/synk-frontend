@@ -10,29 +10,25 @@ import { ApolloProvider, gql } from '@apollo/client';
 import App from 'next/app';
 import { getSession, SessionProvider } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import axios from 'axios';
 import styletron from '../lib/styletron';
 import SynkTheme from '../lib/theme';
 import synkStore from '../redux/store';
 import { initializeApollo, useApollo } from '../lib/apollo';
 import Loading from '../components/atoms/loading';
-import { getProfile } from '../redux/slices/global.slice';
 import '../styles/globals.css';
 import 'normalize.css';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import { firestore } from '../lib/firebase';
+import { getProfile } from '../redux/slices/global.slice';
+import { setProfile, setSignInType, USER_TYPE } from '../redux/slices/auth.slice';
+import { TeacherQuery, TeacherVars } from '../graphql/queries/teacher.query';
+import { StudentQuery, StudentVars } from '../graphql/queries/student.query';
 
 function MyApp({ Component, pageProps }) {
   const getLayout = Component.getLayout ?? ((page) => page);
-  const {
-    initialApolloState, initialReduxState, session, initString,
-  } = pageProps;
+  const { initialApolloState, initialReduxState, session } = pageProps;
   const client = useApollo(initialApolloState);
   const _store = synkStore(initialReduxState);
   const persistor = persistStore(_store);
   const router = useRouter();
-
-  console.log(initString);
 
   const [loading, setLoading] = React.useState(false);
 
@@ -72,20 +68,57 @@ function MyApp({ Component, pageProps }) {
 
 export default MyApp;
 
+export async function fetchAPI({ query, variables, token }) {
+  const apollo = initializeApollo();
+  // eslint-disable-next-line no-return-await
+  return await apollo.query({
+    query,
+    variables,
+    context: {
+      headers: {
+        Authorization: token ? `Bearer ${token}` : '',
+      },
+    },
+  });
+}
+
 MyApp.getInitialProps = async (context) => {
   const appProps = await App.getInitialProps(context);
   const _store = synkStore();
-  const { dispatch } = _store;
+
   const session = await getSession(context);
-  let initString;
+
   if (session) {
-    const ref = doc(firestore, 'students', `${session.user.uid}`);
+    const params = { email: session.user.email };
+    const { dispatch } = _store;
+    let result;
 
-    const docSnap = await getDoc(ref);
-    const student = docSnap.data();
-
-    dispatch(getProfile(student), { payload: student });
+    switch (session.user.role) {
+      case 'faculty': {
+        dispatch(setSignInType(USER_TYPE.teacher));
+        const { data: { faculties } } = await fetchAPI({
+          query: TeacherQuery,
+          variables: TeacherVars({ params }),
+        });
+        result = { ...faculties.data[0] };
+        break;
+      }
+      case 'student': {
+        dispatch(setSignInType(USER_TYPE.student));
+        const { data: { students } } = await fetchAPI({
+          query: StudentQuery,
+          variables: StudentVars({ params }),
+        });
+        result = { ...students.data[0] };
+        break;
+      }
+      default: {
+        result = {};
+      }
+    }
+    dispatch(setProfile(result));
+    dispatch(getProfile(result), { payload: result });
   }
 
-  return { ...appProps, pageProps: { initialReduxState: _store.getState(), initString } };
+  return { ...appProps, pageProps: { initialReduxState: _store.getState() } };
 };

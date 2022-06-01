@@ -1,13 +1,16 @@
 import React from 'react';
 import { useStyletron } from 'baseui';
 import {
+  Books,
   Checks, GearSix, Layout, Student, Users,
 } from 'phosphor-react';
 import { useRouter } from 'next/router';
 import { toggleIsExpanded, TreeView } from 'baseui/tree-view';
 import { Block } from 'baseui/block';
+import { useSelector } from 'react-redux';
 import { StyledSideBarNav } from './styled-components';
 import Logo from '../atoms/logo';
+import { selectAuth, USER_TYPE } from '../../redux/slices/auth.slice';
 
 function customLabel(node) {
   const router = useRouter();
@@ -96,8 +99,49 @@ const items = [
   },
 ];
 
+const studentItems = [
+  {
+    id: '/',
+    title: 'Dashboard',
+    label: customLabel,
+    icon: (<Layout />),
+  },
+  {
+    id: '/attendance',
+    title: 'Attendance',
+    label: customLabel,
+    icon: (<Checks />),
+  },
+  {
+    id: '#courses',
+    title: 'Courses',
+    label: customLabel,
+    icon: (<Books />),
+  },
+  {
+    id: '#settings',
+    title: 'Settings',
+    label: customLabel,
+    icon: (<GearSix />),
+  },
+];
+
 function SideBar() {
-  const [data, setData] = React.useState(items);
+  const { userType } = useSelector(selectAuth);
+  const [data, setData] = React.useState([]);
+
+  React.useEffect(() => {
+    switch (userType) {
+      case USER_TYPE.student:
+        setData(studentItems);
+        break;
+      case USER_TYPE.teacher:
+        setData(items);
+        break;
+      default:
+        setData([]);
+    }
+  }, [userType]);
 
   return (
     <StyledSideBarNav>
