@@ -1,14 +1,12 @@
 import React from 'react';
 import { getSession, signOut, useSession } from 'next-auth/react';
 import { Button, SIZE } from 'baseui/button';
-import {
-  HeadingLarge, HeadingXLarge, ParagraphSmall,
-} from 'baseui/typography';
+import { HeadingXLarge, ParagraphSmall } from 'baseui/typography';
 import { Block } from 'baseui/block';
 import { Avatar } from 'baseui/avatar';
 import { FlexGrid, FlexGridItem } from 'baseui/flex-grid';
 import {
-  At, Envelope, MapPin, Phone, SignOut,
+  Envelope, MapPin, Phone, SignOut,
 } from 'phosphor-react';
 import { useStyletron } from 'baseui';
 import Layout from '../../components/layout';
