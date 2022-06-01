@@ -1,13 +1,13 @@
 import { createSlice } from '@reduxjs/toolkit';
 
-const USER_TYPE = {
-  admin: 0,
-  faculty: 1,
-  student: 2,
+export const USER_TYPE = {
+  teacher: 0,
+  student: 1,
 };
 
 const initialState = {
   userType: USER_TYPE.admin,
+  profile: {},
   userInfo: {
     uid: '',
     userType: USER_TYPE.admin,
@@ -25,10 +25,13 @@ export const authSlice = createSlice({
     setSignInType: (state, action) => ({
       ...state, userType: action.payload,
     }),
+    setProfile: (state, action) => ({
+      ...state, profile: action.payload,
+    }),
   },
 });
 
-export const { getUserInfo, setSignInType } = authSlice.actions;
+export const { getUserInfo, setSignInType, setProfile } = authSlice.actions;
 
 export const selectAuth = (state) => state.auth;
 
