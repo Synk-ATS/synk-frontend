@@ -94,24 +94,27 @@ MyApp.getInitialProps = async (context) => {
     let result;
 
     switch (session.user.role) {
-      case 'faculty':
+      case 'faculty': {
         dispatch(setSignInType(USER_TYPE.teacher));
         const { data: { faculties } } = await fetchAPI({
           query: TeacherQuery,
           variables: TeacherVars({ params }),
         });
-        result = faculties.data[0];
+        result = { ...faculties.data[0] };
         break;
-      case 'student':
+      }
+      case 'student': {
         dispatch(setSignInType(USER_TYPE.student));
         const { data: { students } } = await fetchAPI({
           query: StudentQuery,
           variables: StudentVars({ params }),
         });
-        result = students.data[0];
+        result = { ...students.data[0] };
         break;
-      default:
+      }
+      default: {
         result = {};
+      }
     }
     dispatch(setProfile(result));
     dispatch(getProfile(result), { payload: result });
