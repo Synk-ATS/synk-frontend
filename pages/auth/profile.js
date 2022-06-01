@@ -1,14 +1,14 @@
 import React from 'react';
 import { getSession, signOut, useSession } from 'next-auth/react';
 import { Button } from 'baseui/button';
-import { doc, getDoc, getFirestore } from 'firebase/firestore';
-import PropTypes from 'prop-types';
 import Layout from '../../components/layout';
 import Loading from '../../components/atoms/loading';
-import { Student } from '../../models/student';
+import { TeacherQuery, TeacherVars } from '../../graphql/queries/teacher.query';
+import { StudentQuery, StudentVars } from '../../graphql/queries/student.query';
+import { fetchAPI } from '../_app';
 
-function Profile({ student }) {
-  const { status } = useSession();
+function Profile({ profile }) {
+  const { status, data: session } = useSession();
 
   return (
     <>
@@ -22,9 +22,7 @@ function Profile({ student }) {
 
 export default Profile;
 
-Profile.propTypes = {
-  student: PropTypes.instanceOf(Student).isRequired,
-};
+Profile.propTypes = {};
 
 Profile.getLayout = function getLayout(page) {
   return (
@@ -46,15 +44,26 @@ export async function getServerSideProps(context) {
       },
     };
   }
-
-  try {
-    const db = getFirestore();
-    const ref = doc(db, 'students', `${session.user.uid}`);
-
-    const docSnap = await getDoc(ref);
-
-    return { props: { session, student: docSnap.data() } };
-  } catch (e) {
-    return { props: { session } };
+  const params = { email: session.user.email };
+  let profile;
+  switch (session.user.role) {
+    case 'faculty':
+      const { data: { faculties } } = await fetchAPI({
+        query: TeacherQuery,
+        variables: TeacherVars({ params }),
+      });
+      profile = faculties.data[0];
+      break;
+    case 'student':
+      const { data: { students } } = await fetchAPI({
+        query: StudentQuery,
+        variables: StudentVars({ params }),
+      });
+      profile = students.data[0];
+      break;
+    default:
+      profile = {};
   }
+
+  return { props: { session, profile } };
 }
