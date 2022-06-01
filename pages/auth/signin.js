@@ -5,21 +5,22 @@ import { HeadingXXLarge, ParagraphLarge, ParagraphSmall } from 'baseui/typograph
 import { useStyletron } from 'baseui';
 import { FormControl } from 'baseui/form-control';
 import { Input } from 'baseui/input';
-import { Button, SIZE } from 'baseui/button';
+import { Button } from 'baseui/button';
 import { useRouter } from 'next/router';
 import { FlexGrid, FlexGridItem } from 'baseui/flex-grid';
 import Image from 'next/image';
-import { ButtonGroup, MODE } from 'baseui/button-group';
 import { Block } from 'baseui/block';
+import { useSelector } from 'react-redux';
 import Loading from '../../components/atoms/loading';
+import { selectAuth, USER_TYPE } from '../../redux/slices/auth.slice';
 
 export default function SignIn({ csrfToken }) {
   const [css] = useStyletron();
   const router = useRouter();
+  const { userType } = useSelector(selectAuth);
 
-  const [selected, setSelected] = React.useState(1);
   const [loading, setLoading] = React.useState(false);
-  const [email, setEmail] = React.useState('david.michael@synk.io');
+  const [email, setEmail] = React.useState('david.michael@stu.synk.io');
   const [emailError, setEmailError] = React.useState('');
   const [password, setPassword] = React.useState('Prdha9phd?');
   const [passwordError, setPasswordError] = React.useState('');
@@ -46,7 +47,9 @@ export default function SignIn({ csrfToken }) {
     e.preventDefault();
     if (email && password) {
       setLoading(true);
-      signIn('credentials', { email, password, redirect: false })
+      signIn('credentials', {
+        email, password, userType, redirect: false,
+      })
         .then((res) => {
           if (!res.error) {
             router.push('/');
@@ -97,40 +100,6 @@ export default function SignIn({ csrfToken }) {
               </ParagraphSmall>
             </Block>
           </Block>
-          <Block position="absolute" bottom="4rem">
-            <ParagraphSmall color="mono500">Sign In Options</ParagraphSmall>
-            <ButtonGroup
-              size={SIZE.mini}
-              mode={MODE.radio}
-              selected={selected}
-              onClick={(event, index) => setSelected(index)}
-            >
-              <Button overrides={{
-                BaseButton: {
-                  style: ({ $isSelected, $theme }) => ({
-                    backgroundColor: $isSelected ? $theme.colors.accent : 'transparent',
-                    color: $isSelected ? $theme.colors.mono100 : $theme.colors.mono400,
-                    ':hover': { color: $isSelected ? $theme.colors.mono100 : $theme.colors.mono1000 },
-                  }),
-                },
-              }}
-              >
-                Administrator
-              </Button>
-              <Button overrides={{
-                BaseButton: {
-                  style: ({ $isSelected, $theme }) => ({
-                    backgroundColor: $isSelected ? $theme.colors.accent : 'transparent',
-                    color: $isSelected ? $theme.colors.mono100 : $theme.colors.mono400,
-                    ':hover': { color: $isSelected ? $theme.colors.mono100 : $theme.colors.mono1000 },
-                  }),
-                },
-              }}
-              >
-                Faculty or Student
-              </Button>
-            </ButtonGroup>
-          </Block>
         </FlexGridItem>
         <FlexGridItem
           backgroundColor="mono200"
@@ -145,8 +114,7 @@ export default function SignIn({ csrfToken }) {
         >
           <Block maxWidth="400px" width="100%">
             <HeadingXXLarge $style={{ fontWeight: 'bold' }} marginTop={0} marginBottom="2.5rem">
-              Sign In
-              {selected === 0 ? ' as an Administrator' : ' a Faculty or Student'}
+              Sign in to gain access.
             </HeadingXXLarge>
             <form
               onSubmit={handleSubmit}
