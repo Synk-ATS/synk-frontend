@@ -1,6 +1,8 @@
 import React from 'react';
 import { getSession, signOut, useSession } from 'next-auth/react';
 import { Button } from 'baseui/button';
+import { HeadingLarge, HeadingMedium, HeadingSmall } from 'baseui/typography';
+import { Block } from 'baseui/block';
 import Layout from '../../components/layout';
 import Loading from '../../components/atoms/loading';
 import { TeacherQuery, TeacherVars } from '../../graphql/queries/teacher.query';
@@ -9,13 +11,17 @@ import { fetchAPI } from '../_app';
 
 function Profile({ profile }) {
   const { status, data: session } = useSession();
-
+  const { attributes: { firstName, lastName } } = profile;
   return (
     <>
       <Loading loading={status === 'loading'} />
-      <div>
+      <Block paddingLeft={['20px', '20px', '20px', '40px']} paddingRight={['20px', '20px', '20px', '40px']}>
+        <HeadingSmall>{`${firstName} ${lastName}`}</HeadingSmall>
+        <Block backgroundColor="mono300" padding={['20px', '20px', '20px', '20px']}>
+          s
+        </Block>
         <Button onClick={() => signOut()}>Sign out</Button>
-      </div>
+      </Block>
     </>
   );
 }
