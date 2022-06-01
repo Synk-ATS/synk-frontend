@@ -7,13 +7,16 @@ export const StudentQuery = gql`
           id
           attributes {
             firstName
+            middleName
             lastName
             email
             gender
             level
+            phone
+            address
+            nationality
             avatar {
               data {
-                id
                 attributes {
                   url
                 }
@@ -31,7 +34,6 @@ export const StudentQuery = gql`
             }
             department {
               data {
-                id
                 attributes {
                   name
                 }
