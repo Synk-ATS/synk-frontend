@@ -23,36 +23,12 @@ import { selectAuth } from '../redux/slices/auth.slice';
 import { fetchAPI } from './_app';
 import synkStore from '../redux/store';
 import { StudsByCourseQuery, StudsByCourseVars } from '../graphql/queries/students-by-courses.query';
-import TeacherAttendance from '../contents/attendance/teacher-attendance';
+import FacultyAttendance from '../contents/attendance/faculty-attendance';
+import StudentAttendance from '../contents/attendance/student-attendance';
 
 function Attendance({ result }) {
   const [css, theme] = useStyletron();
   const { data: { user: { role } } } = useSession();
-
-  const {
-    profile: {
-      attributes: {
-        course: {
-          data: {
-            attributes: {
-              title: course,
-            },
-          },
-        },
-        program: {
-          data: {
-            attributes: {
-              name: program,
-            },
-          },
-        },
-      },
-    },
-  } = useSelector(selectAuth);
-
-  const [date, setDate] = React.useState(null);
-  const today = new Date('YYYY-MM-DD');
-  const [selected, setSelected] = React.useState();
 
   const [camEnabled, setCamEnabled] = React.useState(false);
   const [isModalOpen, setModalOpen] = React.useState(false);
@@ -144,25 +120,12 @@ function Attendance({ result }) {
     setModelsLoaded(false);
   };
 
-  const DATA = result.data.map((student, i) => ({
-    id: student.id,
-    uid: student.attributes.uid,
-    avatar: student.attributes.avatar.data.attributes.url,
-    name: `${student.attributes.lastName}, ${student.attributes.firstName} ${student.attributes.middleName}`,
-    status: true,
-    capture: () => {},
-  }));
-
   if (role === 'student') {
-    return (
-      <Block paddingLeft={['20px', '20px', '40px', '40px']} paddingRight={['20px', '20px', '40px', '40px']}>
-        <HeadingMedium marginBottom={0}>Your Attendance</HeadingMedium>
-      </Block>
-    );
+    return (<StudentAttendance />);
   }
 
   if (role === 'faculty') {
-    return (<TeacherAttendance students={result.data} />);
+    return (<FacultyAttendance students={result.data} />);
   }
 }
 
