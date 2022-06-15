@@ -6,21 +6,20 @@ import { BaseProvider } from 'baseui';
 import { Provider } from 'react-redux';
 import { persistStore } from 'redux-persist';
 import { PersistGate } from 'redux-persist/integration/react';
-import { ApolloProvider, gql } from '@apollo/client';
+import { ApolloProvider } from '@apollo/client';
 import App from 'next/app';
 import { getSession, SessionProvider } from 'next-auth/react';
 import { useRouter } from 'next/router';
+import axios from 'axios';
 import styletron from '../lib/styletron';
 import SynkTheme from '../lib/theme';
 import synkStore from '../redux/store';
 import { initializeApollo, useApollo } from '../lib/apollo';
 import Loading from '../components/atoms/loading';
+import { setProfile, setSignInType, USER_TYPE } from '../redux/slices/auth.slice';
 import '../styles/globals.css';
 import 'normalize.css';
-import { getProfile } from '../redux/slices/global.slice';
-import { setProfile, setSignInType, USER_TYPE } from '../redux/slices/auth.slice';
-import { TeacherQuery, TeacherVars } from '../graphql/queries/teacher.query';
-import { StudentQuery, StudentVars } from '../graphql/queries/student.query';
+import { CookiesProvider } from 'react-cookie';
 
 function MyApp({ Component, pageProps }) {
   const getLayout = Component.getLayout ?? ((page) => page);
@@ -50,18 +49,20 @@ function MyApp({ Component, pageProps }) {
 
   return (
     <SessionProvider session={session}>
-      <Provider store={_store}>
-        <PersistGate loading={null} persistor={persistor}>
-          <ApolloProvider client={client}>
-            <StyletronProvider value={styletron}>
-              <BaseProvider theme={SynkTheme}>
-                <Loading loading={loading} />
-                {getLayout(<Component {...pageProps} />)}
-              </BaseProvider>
-            </StyletronProvider>
-          </ApolloProvider>
-        </PersistGate>
-      </Provider>
+      <CookiesProvider>
+        <Provider store={_store}>
+          <PersistGate loading={null} persistor={persistor}>
+            <ApolloProvider client={client}>
+              <StyletronProvider value={styletron}>
+                <BaseProvider theme={SynkTheme}>
+                  <Loading loading={loading} />
+                  {getLayout(<Component {...pageProps} />)}
+                </BaseProvider>
+              </StyletronProvider>
+            </ApolloProvider>
+          </PersistGate>
+        </Provider>
+      </CookiesProvider>
     </SessionProvider>
   );
 }
@@ -89,35 +90,37 @@ MyApp.getInitialProps = async (context) => {
   const session = await getSession(context);
 
   if (session) {
-    const params = { email: session.user.email };
     const { dispatch } = _store;
+
+    const { email, role } = session.user;
+
     let result;
 
-    switch (session.user.role) {
+    switch (role) {
       case 'faculty': {
-        dispatch(setSignInType(USER_TYPE.teacher));
-        const { data: { faculties } } = await fetchAPI({
-          query: TeacherQuery,
-          variables: TeacherVars({ params }),
+        dispatch(setSignInType(USER_TYPE.faculty));
+        const { data } = await axios.get(`http://localhost:1337/api/faculties?filters[email][$eq]=${email}&populate=%2A`, {
+          headers: {
+            Authorization: `Bearer ${session.jwt}`,
+          },
         });
-        result = { ...faculties.data[0] };
+        result = { ...data.data[0] };
         break;
       }
       case 'student': {
         dispatch(setSignInType(USER_TYPE.student));
-        const { data: { students } } = await fetchAPI({
-          query: StudentQuery,
-          variables: StudentVars({ params }),
+        const { data } = await axios.get(`http://localhost:1337/api/students?filters[email][$eq]=${email}&populate=%2A`, {
+          headers: {
+            Authorization: `Bearer ${session.jwt}`,
+          },
         });
-        result = { ...students.data[0] };
+        result = { ...data.data[0] };
         break;
       }
-      default: {
-        result = {};
-      }
+      default:
+        return {};
     }
     dispatch(setProfile(result));
-    dispatch(getProfile(result), { payload: result });
   }
 
   return { ...appProps, pageProps: { initialReduxState: _store.getState() } };

@@ -22,7 +22,6 @@ const options = {
           });
 
           const user = { ...data, role: role.type };
-
           if (user) {
             return user;
           }

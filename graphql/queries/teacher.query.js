@@ -6,10 +6,10 @@ export const TeacherQuery = gql`
         data {
           id
           attributes {
+            uid
             firstName
             middleName
             lastName
-            facultyId
             email
             gender
             phone
@@ -32,14 +32,7 @@ export const TeacherQuery = gql`
                 }
               }
             }
-            department {
-              data {
-                id
-                attributes {
-                  name
-                }
-              }
-            } 
+          
           }
         }
       }

@@ -80,6 +80,12 @@ const items = [
     icon: (<Checks />),
   },
   {
+    id: '/biometrics',
+    title: 'Biometrics',
+    label: customLabel,
+    icon: (<Checks />),
+  },
+  {
     id: '#students',
     title: 'Students',
     label: customLabel,
@@ -113,6 +119,12 @@ const studentItems = [
     icon: (<Checks />),
   },
   {
+    id: '/biometrics',
+    title: 'Biometrics',
+    label: customLabel,
+    icon: (<Checks />),
+  },
+  {
     id: '#courses',
     title: 'Courses',
     label: customLabel,
@@ -135,7 +147,7 @@ function SideBar() {
       case USER_TYPE.student:
         setData(studentItems);
         break;
-      case USER_TYPE.teacher:
+      case USER_TYPE.faculty:
         setData(items);
         break;
       default:

@@ -1,27 +1,19 @@
 import { createSlice } from '@reduxjs/toolkit';
 
 export const USER_TYPE = {
-  teacher: 0,
+  faculty: 0,
   student: 1,
 };
 
 const initialState = {
-  userType: USER_TYPE.admin,
+  userType: null,
   profile: {},
-  userInfo: {
-    uid: '',
-    userType: USER_TYPE.admin,
-    email: '',
-  },
 };
 
 export const authSlice = createSlice({
   name: 'auth',
   initialState,
   reducers: {
-    getUserInfo: (state, action) => ({
-      ...state, userInfo: action.payload,
-    }),
     setSignInType: (state, action) => ({
       ...state, userType: action.payload,
     }),
@@ -31,7 +23,7 @@ export const authSlice = createSlice({
   },
 });
 
-export const { getUserInfo, setSignInType, setProfile } = authSlice.actions;
+export const { setSignInType, setProfile } = authSlice.actions;
 
 export const selectAuth = (state) => state.auth;
 

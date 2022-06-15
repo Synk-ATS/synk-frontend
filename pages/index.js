@@ -1,7 +1,7 @@
 import React from 'react';
 import Head from 'next/head';
 import Image from 'next/image';
-import { getSession, useSession } from 'next-auth/react';
+import { getSession } from 'next-auth/react';
 import styles from '../styles/Home.module.css';
 import Layout from '../components/layout';
 

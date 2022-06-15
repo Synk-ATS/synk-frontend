@@ -14,9 +14,6 @@ function Header() {
   const {
     profile: { attributes: { firstName, lastName, avatar } },
   } = useSelector(selectAuth);
-  const { profile } = useSelector(selectAuth);
-  console.log(profile);
-
   const options = {
     labelKey: 'id',
     valueKey: 'color',

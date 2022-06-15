@@ -9,11 +9,9 @@ import {
   Envelope, MapPin, Phone, SignOut,
 } from 'phosphor-react';
 import { useStyletron } from 'baseui';
+import axios from 'axios';
 import Layout from '../../components/layout';
 import Loading from '../../components/atoms/loading';
-import { TeacherQuery, TeacherVars } from '../../graphql/queries/teacher.query';
-import { StudentQuery, StudentVars } from '../../graphql/queries/student.query';
-import { fetchAPI } from '../_app';
 
 function Profile({ profile }) {
   const [css, theme] = useStyletron();
@@ -98,7 +96,7 @@ function Profile({ profile }) {
               <ParagraphSmall marginTop={0} marginBottom="1rem" display="flex">
                 <span style={{ fontWeight: '600' }}>Level:</span>
                 <Block width="10px" />
-                {profile.attributes.level.split('_')[1]}
+                {profile.attributes.level.split(' ')[1]}
               </ParagraphSmall>
             ) : null}
             {session.user.role === 'faculty' ? (
@@ -144,25 +142,30 @@ export async function getServerSideProps(context) {
       },
     };
   }
-  const params = { email: session.user.email };
+  const { email, role } = session.user;
   let profile;
-  switch (session.user.role) {
-    case 'faculty':
-      const { data: { faculties } } = await fetchAPI({
-        query: TeacherQuery,
-        variables: TeacherVars({ params }),
+  switch (role) {
+    case 'faculty': {
+      const { data } = await axios.get(`http://localhost:1337/api/faculties?filters[email][$eq]=${email}&populate=%2A`, {
+        headers: {
+          Authorization: `Bearer ${session.jwt}`,
+        },
       });
-      profile = faculties.data[0];
+      profile = { ...data.data[0] };
       break;
-    case 'student':
-      const { data: { students } } = await fetchAPI({
-        query: StudentQuery,
-        variables: StudentVars({ params }),
+    }
+    case 'student': {
+      const { data } = await axios.get(`http://localhost:1337/api/students?filters[email][$eq]=${email}&populate=%2A`, {
+        headers: {
+          Authorization: `Bearer ${session.jwt}`,
+        },
       });
-      profile = students.data[0];
+      profile = { ...data.data[0] };
       break;
-    default:
+    }
+    default: {
       profile = {};
+    }
   }
 
   return { props: { session, profile } };
