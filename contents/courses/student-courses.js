@@ -1,8 +1,14 @@
 import React from 'react';
-import { HeadingLarge, HeadingXLarge } from 'baseui/typography';
+import {
+  HeadingLarge, HeadingXLarge, ParagraphMedium, ParagraphXSmall,
+} from 'baseui/typography';
 import { Block } from 'baseui/block';
 import { gql, useQuery } from '@apollo/client';
 import { useSession } from 'next-auth/react';
+import { FlexGrid, FlexGridItem } from 'baseui/flex-grid';
+import { Cpu } from 'phosphor-react';
+import { Button, SIZE } from 'baseui/button';
+import { useStyletron } from 'baseui';
 import Loading from '../../components/atoms/loading';
 
 const CoursesQuery = gql`
@@ -37,9 +43,10 @@ const CoursesQuery = gql`
 `;
 
 function StudentCourses() {
+  const [css, theme] = useStyletron();
   const { data: session } = useSession();
 
-  const { loading, error, data } = useQuery(CoursesQuery, {
+  const { loading, error, data: { courses } } = useQuery(CoursesQuery, {
     variables: { email: session.email },
     context: { headers: { Authorization: `Bearer ${session.jwt}` } },
   });
@@ -58,6 +65,80 @@ function StudentCourses() {
       paddingRight={['20px', '20px', '40px', '40px']}
     >
       <HeadingLarge>Student Courses</HeadingLarge>
+      <FlexGrid
+        flexGridColumnCount={5}
+        flexGridColumnGap="2px"
+        flexGridRowGap="2px"
+        flexWrap
+      >
+        {courses.data.map((course) => {
+          const faculty = course.attributes.faculties.data[0];
+          const { designation, firstName, lastName } = faculty.attributes;
+          const facultyName = `by ${designation} ${firstName} ${lastName}`;
+
+          return (
+            <FlexGridItem
+              key={course.id}
+              backgroundColor="mono200"
+              overrides={{
+                Block: {
+                  style: ({
+                    aspectRatio: '1 / 1',
+                    paddingTop: '1.2rem',
+                    paddingRight: '1.2rem',
+                    paddingBottom: '1.2rem',
+                    paddingLeft: '1.2rem',
+                    cursor: 'pointer',
+                    display: 'grid',
+                    alignItems: 'center',
+                    transitionProperty: 'all',
+                    transitionDuration: theme.animation.timing900,
+                    ':hover': {
+                      backgroundColor: 'rgba(242,61,79,0.2)',
+                    },
+                  }),
+                },
+              }}
+            >
+              <div className={css({
+                borderRadius: '50%',
+                backgroundColor: 'rgba(242,61,79,0.3)',
+                height: '2.2rem',
+                width: '2.2rem',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+              })}
+              >
+                <Cpu />
+              </div>
+              <ParagraphMedium
+                overrides={{
+                  Block: {
+                    style: ({
+                      marginTop: 0,
+                      marginBottom: 0,
+                      fontWeight: '500',
+                      fontSize: '1.2rem',
+                      lineHeight: '1.6rem',
+                      maxHeight: '4rem',
+                      height: '4rem',
+                      display: 'flex',
+                      alignItems: 'flex-end',
+                    }),
+                  },
+                }}
+              >
+                {course.attributes.title}
+              </ParagraphMedium>
+              <ParagraphXSmall overrides={{ Block: { style: ({ marginTop: 0, marginBottom: '10px', fontSize: '10px' }) } }}>
+                {facultyName}
+              </ParagraphXSmall>
+              <Button size={SIZE.mini}>View</Button>
+            </FlexGridItem>
+          );
+        })}
+      </FlexGrid>
     </Block>
   );
 }
