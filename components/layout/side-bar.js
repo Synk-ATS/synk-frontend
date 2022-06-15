@@ -125,7 +125,7 @@ const studentItems = [
     icon: (<Checks />),
   },
   {
-    id: '#courses',
+    id: '/courses',
     title: 'Courses',
     label: customLabel,
     icon: (<Books />),
