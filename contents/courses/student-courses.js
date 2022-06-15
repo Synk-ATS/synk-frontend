@@ -9,6 +9,7 @@ import { FlexGrid, FlexGridItem } from 'baseui/flex-grid';
 import { Cpu } from 'phosphor-react';
 import { Button, SIZE } from 'baseui/button';
 import { useStyletron } from 'baseui';
+import { useRouter } from 'next/router';
 import Loading from '../../components/atoms/loading';
 
 const CoursesQuery = gql`
@@ -45,6 +46,7 @@ const CoursesQuery = gql`
 function StudentCourses() {
   const [css, theme] = useStyletron();
   const { data: session } = useSession();
+  const router = useRouter();
 
   const { loading, error, data } = useQuery(CoursesQuery, {
     variables: { email: session.user.email },
@@ -80,6 +82,12 @@ function StudentCourses() {
           return (
             <FlexGridItem
               key={course.id}
+              onClick={async () => {
+                await router.push({
+                  pathname: '/courses/[code]',
+                  query: { code: course.attributes.code },
+                });
+              }}
               backgroundColor="mono200"
               overrides={{
                 Block: {
