@@ -3,6 +3,8 @@ import PropTypes from 'prop-types';
 import { getSession } from 'next-auth/react';
 import FacultyCourses from '../contents/courses/faculty-courses';
 import StudentCourses from '../contents/courses/student-courses';
+import Layout from '../components/layout';
+import Attendance from './attendance';
 
 function Courses({ role }) {
   switch (role) {
@@ -17,6 +19,14 @@ function Courses({ role }) {
 
 Courses.propTypes = {
   role: PropTypes.string.isRequired,
+};
+
+Courses.getLayout = function getLayout(page) {
+  return (
+    <Layout>
+      {page}
+    </Layout>
+  );
 };
 
 export default Courses;
