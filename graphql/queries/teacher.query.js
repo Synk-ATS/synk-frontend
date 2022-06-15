@@ -27,7 +27,7 @@ export const TeacherQuery = gql`
                 id
                 attributes {
                   title
-                  course_code
+                  code
                   description
                 }
               }
