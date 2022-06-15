@@ -27,7 +27,7 @@ export const StudentQuery = gql`
                 id
                 attributes {
                   title
-                  course_code
+                  code
                   description
                 }
               }
