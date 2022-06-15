@@ -24,7 +24,7 @@ const StudentsQuery = gql`
               id
               attributes {
                 title
-                course_code
+                code
                 description
                 faculties {
                   data {
