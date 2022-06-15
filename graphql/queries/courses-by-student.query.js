@@ -7,7 +7,7 @@ export const CoursesByStudent = gql`
           id
           attributes {
             title
-            course_code
+            code
             description
             students(filters:{id:{eq: $id}}) {
               data {
