@@ -4,7 +4,6 @@ import { getSession } from 'next-auth/react';
 import FacultyCourses from '../contents/courses/faculty-courses';
 import StudentCourses from '../contents/courses/student-courses';
 import Layout from '../components/layout';
-import Attendance from './attendance';
 
 function Courses({ role }) {
   switch (role) {
