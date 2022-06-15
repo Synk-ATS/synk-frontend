@@ -1,6 +1,6 @@
 import React from 'react';
 import {
-  HeadingLarge, HeadingXLarge, ParagraphMedium, ParagraphXSmall,
+  HeadingLarge, HeadingXLarge, ParagraphMedium, ParagraphSmall, ParagraphXSmall,
 } from 'baseui/typography';
 import { Block } from 'baseui/block';
 import { gql, useQuery } from '@apollo/client';
@@ -18,7 +18,7 @@ const CoursesQuery = gql`
         id
         attributes {
           title
-          course_code
+          code
           description
           program {
             data {
@@ -46,8 +46,8 @@ function StudentCourses() {
   const [css, theme] = useStyletron();
   const { data: session } = useSession();
 
-  const { loading, error, data: { courses } } = useQuery(CoursesQuery, {
-    variables: { email: session.email },
+  const { loading, error, data } = useQuery(CoursesQuery, {
+    variables: { email: session.user.email },
     context: { headers: { Authorization: `Bearer ${session.jwt}` } },
   });
 
@@ -71,7 +71,8 @@ function StudentCourses() {
         flexGridRowGap="2px"
         flexWrap
       >
-        {courses.data.map((course) => {
+        {data?.courses?.data.map((course) => {
+          const { code } = course.attributes;
           const faculty = course.attributes.faculties.data[0];
           const { designation, firstName, lastName } = faculty.attributes;
           const facultyName = `by ${designation} ${firstName} ${lastName}`;
@@ -100,18 +101,22 @@ function StudentCourses() {
                 },
               }}
             >
-              <div className={css({
-                borderRadius: '50%',
-                backgroundColor: 'rgba(242,61,79,0.3)',
-                height: '2.2rem',
-                width: '2.2rem',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-              })}
-              >
-                <Cpu />
-              </div>
+              <Block display="flex" justifyContent="space-between" alignItems="center">
+                <div className={css({
+                  borderRadius: '50%',
+                  backgroundColor: 'rgba(242,61,79,0.3)',
+                  height: '2.2rem',
+                  width: '2.2rem',
+                  display: 'flex',
+                  alignItems: 'center',
+                  justifyContent: 'center',
+                })}
+                >
+                  <Cpu />
+                </div>
+                <ParagraphXSmall marginTop={0} marginBottom={0}>{code}</ParagraphXSmall>
+
+              </Block>
               <ParagraphMedium
                 overrides={{
                   Block: {
@@ -131,10 +136,9 @@ function StudentCourses() {
               >
                 {course.attributes.title}
               </ParagraphMedium>
-              <ParagraphXSmall overrides={{ Block: { style: ({ marginTop: 0, marginBottom: '10px', fontSize: '10px' }) } }}>
+              <ParagraphXSmall overrides={{ Block: { style: ({ marginTop: 0, marginBottom: '10px' }) } }}>
                 {facultyName}
               </ParagraphXSmall>
-              <Button size={SIZE.mini}>View</Button>
             </FlexGridItem>
           );
         })}
