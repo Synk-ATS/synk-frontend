@@ -1,8 +1,10 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
-import axios from 'axios';
-import { gql } from '@apollo/client';
-import { fetchAPI } from '../../_app';
+import RoleQuery from '../../../graphql/queries/role.query';
+import { FacultyIdQuery } from '../../../graphql/queries/faculty.query';
+import { StudentIdQuery } from '../../../graphql/queries/student.query';
+import { fetchAPI, postAPI } from '../../../lib/api';
+import LoginMutation from '../../../graphql/mutations/login.mutation';
 
 const options = {
   providers: [
@@ -14,13 +16,13 @@ const options = {
       },
       async authorize(credentials) {
         if ('email' in credentials && 'password' in credentials) {
-          const { data } = await axios.post(`${process.env.AUTH_API}/api/auth/local`, {
-            identifier: credentials.email,
-            password: credentials.password,
+          const { data: { login } } = await postAPI({
+            mutation: LoginMutation,
+            variables: { identifier: credentials.email, password: credentials.password },
           });
 
-          const { data: { role } } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
-            headers: { Authorization: `Bearer ${data.jwt}` },
+          const { data: { me: { role } } } = await fetchAPI({
+            query: RoleQuery, token: login.jwt,
           });
 
           let user;
@@ -28,38 +30,22 @@ const options = {
           switch (role.type) {
             case 'faculty': {
               const { data: { faculties } } = await fetchAPI({
-                query: gql`
-                  query Faculties($email: String!) {
-                    faculties(filters: {email: {eq: $email}}){
-                      data {
-                        id
-                      }
-                    }
-                  }
-                `,
-                variables: { email: data.user.email },
-                token: data.jwt,
+                query: FacultyIdQuery,
+                variables: { email: login.user.email },
+                token: login.jwt,
               });
               const facultyID = faculties.data[0].id;
-              user = { ...data, role: role.type, facultyID };
+              user = { ...login, role: role.type, facultyID };
               break;
             }
             case 'student': {
               const { data: { students } } = await fetchAPI({
-                query: gql`
-                  query Students($email: String!) {
-                    students(filters: {email: {eq: $email}}){
-                      data {
-                        id
-                      }
-                    }
-                  }
-                `,
-                variables: { email: data.user.email },
-                token: data.jwt,
+                query: StudentIdQuery,
+                variables: { email: login.user.email },
+                token: login.jwt,
               });
               const studentID = students.data[0].id;
-              user = { ...data, role: role.type, studentID };
+              user = { ...login, role: role.type, studentID };
               break;
             }
             default: {
