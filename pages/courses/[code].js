@@ -22,9 +22,9 @@ import {
 import * as faceapi from 'face-api.js';
 import { useRouter } from 'next/router';
 import Layout from '../../components/layout';
-import { fetchAPI } from '../_app';
 import { setToast } from '../../redux/slices/global.slice';
 import Loading from '../../components/atoms/loading';
+import { fetchAPI } from '../../lib/api';
 
 const UpdateAttendanceQuery = gql`
     mutation UpdateAttendance($id: ID!, $record: JSON!) {

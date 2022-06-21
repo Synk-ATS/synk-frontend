@@ -10,8 +10,8 @@ import { ArrowBendUpLeft } from 'phosphor-react';
 import { Button, SIZE } from 'baseui/button';
 import { useRouter } from 'next/router';
 import Layout from '../../components/layout';
-import { fetchAPI } from '../_app';
 import ReportQuery from '../../graphql/queries/report.query';
+import { fetchAPI } from '../../lib/api';
 
 function Report({ faculty }) {
   const [css, theme] = useStyletron();

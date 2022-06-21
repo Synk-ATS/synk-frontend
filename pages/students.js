@@ -8,8 +8,8 @@ import { gql } from '@apollo/client';
 import { TableBuilder, TableBuilderColumn } from 'baseui/table-semantic';
 import { useStyletron } from 'baseui';
 import { Avatar } from 'baseui/avatar';
-import { fetchAPI } from './_app';
 import Layout from '../components/layout';
+import { fetchAPI } from '../lib/api';
 
 function Students({ faculty }) {
   const [css] = useStyletron();
