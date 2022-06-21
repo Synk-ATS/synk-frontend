@@ -10,21 +10,14 @@ export const StudentIdQuery = gql`
   }
 `;
 
-export const StudentQuery = gql`
-    query Student($email: String!) {
-      students(filters: {email:{contains: $email}}) {
+export const AppStudentQuery = gql`
+  query Student($id: ID!) {
+      student(id: $id) {
         data {
           id
           attributes {
             firstName
-            middleName
             lastName
-            email
-            gender
-            level
-            phone
-            address
-            nationality
             avatar {
               data {
                 attributes {
@@ -32,13 +25,31 @@ export const StudentQuery = gql`
                 }
               }
             }
-            courses {
+          }
+        }
+      }
+    }
+`;
+
+export const StudentQuery = gql`
+    query Student($id: ID!) {
+      student(id: $id) {
+        data {
+          attributes {
+            uid
+            firstName
+            middleName
+            lastName
+            email
+            phone
+            address
+            gender
+            level
+            nationality
+            avatar {
               data {
-                id
                 attributes {
-                  title
-                  code
-                  description
+                  url
                 }
               }
             }
@@ -52,7 +63,7 @@ export const StudentQuery = gql`
           }
         }
       }
-    }                   
+    }                  
 `;
 
 export const StudentVars = ({ params }) => ({ email: params.email });

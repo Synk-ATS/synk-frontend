@@ -151,68 +151,65 @@ function Code({ course, attendance }) {
           .withFaceLandmarks()
           .withFaceDescriptor();
 
-        if (queryResult) {
-          const bestMatch = faceMatcher.findBestMatch(queryResult.descriptor);
+        const bestMatch = faceMatcher.findBestMatch(queryResult.descriptor);
 
-          const content = JSON.parse(attendance?.attributes?.content);
+        const content = attendance?.attributes?.content;
 
-          const studentIndex = content.findIndex((x) => x.uid === uid);
+        const studentIndex = content.findIndex((x) => x.uid === uid);
 
-          if (bestMatch.label === 'unknown' && bestMatch.distance > 0.6) {
-            closeWebcam();
-            setModalOpen(false);
-            setInfoModalOpen(true);
+        if (bestMatch.label === 'unknown' && bestMatch.distance > 0.6) {
+          closeWebcam();
+          setModalOpen(false);
+          setInfoModalOpen(true);
+        }
+
+        if (bestMatch.label !== 'unknown' && bestMatch.distance <= 0.6) {
+          content[studentIndex].status = true;
+
+          if (_attRecord === null || _attRecord === undefined) {
+            const _record = [{ course: _courseID, daysPresent: 1 }];
+
+            try {
+              await updateStudentAttendanceRecord({
+                variables: { id: _student.id, record: JSON.stringify(_record) },
+              });
+            } catch (e) {
+              // console.log(e);
+            }
           }
 
-          if (bestMatch.label !== 'unknown' && bestMatch.distance <= 0.6) {
-            content[studentIndex].status = true;
+          if (_attRecord !== null && _attRecord !== undefined) {
+            const courseIndex = _attRecord.findIndex((atR) => atR.course === _courseID);
 
-            if (_attRecord === undefined || _attRecord === null) {
-              const attendanceRecord = [{ course: _courseID, daysPresent: 1 }];
-
+            if (_attRecord.filter((op) => op.course === _courseID).length > 0) {
+              const daysPresent = parseInt(_attRecord[courseIndex].daysPresent, 10);
+              _attRecord[courseIndex].daysPresent = (daysPresent + 1);
               try {
                 await updateStudentAttendanceRecord({
-                  variables: { id: _student.id, record: JSON.stringify(attendanceRecord) },
+                  variables: { id: _student.id, record: JSON.stringify(_attRecord) },
+                });
+              } catch (e) {
+                // console.log(e);
+              }
+            } else {
+              _attRecord.push({ course: _courseID, daysPresent: 1 });
+              try {
+                await updateStudentAttendanceRecord({
+                  variables: { id: _student.id, record: JSON.stringify(_attRecord) },
                 });
               } catch (e) {
                 // console.log(e);
               }
             }
-
-            // eslint-disable-next-line no-constant-condition
-            if (_attRecord !== undefined || true) {
-              const attRecord = JSON.parse(_attRecord);
-              const courseIndex = attRecord.findIndex((atR) => atR.course === _courseID);
-
-              if (attRecord.filter((op) => op.course === _courseID).length > 0) {
-                attRecord[courseIndex].daysPresent += 1;
-                try {
-                  await updateStudentAttendanceRecord({
-                    variables: { id: _student.id, record: JSON.stringify(attRecord) },
-                  });
-                } catch (e) {
-                  // console.log(e);
-                }
-              } else {
-                attRecord.push({ course: _courseID, daysPresent: 1 });
-                try {
-                  await updateStudentAttendanceRecord({
-                    variables: { id: _student.id, record: JSON.stringify(attRecord) },
-                  });
-                } catch (e) {
-                  // console.log(e);
-                }
-              }
-            }
-
-            updateAttendance({
-              variables: { id: attendance?.id, record: JSON.stringify(content) },
-            }).then((value) => {
-              if (value.data) {
-                router.reload();
-              }
-            });
           }
+
+          updateAttendance({
+            variables: { id: attendance?.id, record: JSON.stringify(content) },
+          }).then((value) => {
+            if (value.data) {
+              router.reload();
+            }
+          });
         }
 
         canvasRef && canvasRef.current && canvasRef.current.getContext('2d').clearRect(0, 0, videoWidth, videoHeight);
@@ -231,11 +228,11 @@ function Code({ course, attendance }) {
 
   const {
     designation, firstName, lastName,
-  } = course.attributes.faculties.data[0].attributes;
+  } = course.attributes.faculty.data.attributes;
   const faculty = `${designation} ${firstName} ${lastName}`;
 
   const DATA = course.attributes.attendances.data.map((att) => {
-    const content = JSON.parse(att.attributes.content);
+    const { content } = att.attributes;
     const { uid } = course.attributes.students.data[0].attributes;
     const index = content.findIndex((x) => x.uid === uid);
 
@@ -457,73 +454,85 @@ Code.propTypes = {
 };
 
 const CourseQuery = gql`
-   query Course($code: String!, $email: String!) {
-      courses(filters: { code: { eq: $code } }) {
-        data {
-          id
-          attributes {
-            title
-            code
-            description
-            attendances {
-              data {
-                id
-                attributes {
-                  date
-                  open
-                  content
-                }
+  query Course($code: String!, $id: ID!) {
+    courses(filters: { code: { eq: $code } }) {
+      data {
+        id
+        attributes {
+          title
+          code
+          description
+          attendances {
+            data {
+              id
+              attributes {
+                date
+                open
+                content
               }
             }
-            students(filters: { email: { eq: $email } }) {
-              data {
-                id
-                attributes {
-                  firstName
-                  lastName
-                  uid
-                  attendanceRecord
-                  avatar {
-                    data {
-                      attributes {
-                        url
-                      }
+          }
+          students(filters: { id: { eq: $id } }) {
+            data {
+              id
+              attributes {
+                firstName
+                lastName
+                uid
+                attendanceRecord
+                avatar {
+                  data {
+                    attributes {
+                      url
                     }
                   }
                 }
               }
             }
-            faculties {
-              data {
-                attributes {
-                  firstName
-                  lastName
-                  designation
-                }
+          }
+          faculty {
+            data {
+              attributes {
+                firstName
+                lastName
+                designation
               }
             }
           }
         }
       }
     }
+  }
 `;
 
 const AttendanceQuery = gql`
-    query Attendance($date: Date, $code: String!) {
-      attendances(filters: { date: { eq: $date }, open: {eq: true}, course: { code: { eq: $code } } }) {
-        data {
-          id
-          attributes {
-            date
-            open
-            timer
-            content
-            faculty {
-              data {
-                id
-                attributes {
-                  firstName
-                  lastName
+  query Attendance($date: Date, $code: String!) {
+    attendances(
+      filters: {
+        date: { eq: $date }
+        open: { eq: true }
+        course: { code: { eq: $code } }
+      }
+    ) {
+      data {
+        id
+        attributes {
+          date
+          open
+          timer
+          content
+          course {
+            data {
+              attributes {
+                code
+                faculty {
+                  data {
+                    id
+                    attributes {
+                      firstName
+                      lastName
+                    }
+                  }
                 }
               }
             }
@@ -531,6 +540,7 @@ const AttendanceQuery = gql`
         }
       }
     }
+  }
 `;
 
 export async function getServerSideProps(context) {
@@ -546,17 +556,20 @@ export async function getServerSideProps(context) {
     };
   }
 
+  const { jwt, user } = session;
+  const { studentID } = user;
+
   const { data } = await fetchAPI({
     query: CourseQuery,
-    variables: { code: context.params.code, email: session.user.email },
-    token: session.jwt,
+    variables: { code: context.params.code, id: studentID },
+    token: jwt,
   });
 
   const { data: { attendances } } = await fetchAPI({
     query: AttendanceQuery,
     variables: { code: context.params.code },
     // variables: { code: context.params.code, date: new Date().toLocaleDateString('en-CA') },
-    token: session.jwt,
+    token: jwt,
   });
 
   return {

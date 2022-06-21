@@ -16,40 +16,9 @@ import { useRouter } from 'next/router';
 import Countdown from 'react-countdown';
 import Layout from '../../components/layout';
 import { fetchAPI } from '../_app';
-
-const UpdateAttendanceMutation = gql`
-  mutation UpdateAttendance($id: ID!, $content: JSON, $open: Boolean) {
-    updateAttendance(id: $id, data: {content: $content, open: $open}) {
-      data {
-        id
-        attributes {
-          date
-          open
-          timer
-          content
-          faculty {
-            data {
-              attributes {
-                firstName
-                lastName
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`;
-
-const DeleteAttendanceMutation = gql`
-  mutation DeleteAttendance($id: ID!) {
-    deleteAttendance(id: $id) {
-      data {
-        id
-      }
-    }
-  }
-`;
+import AttendanceQuery from '../../graphql/queries/attendance.query';
+import UpdateAttendanceMutation from '../../graphql/mutations/update-attendance.mutation';
+import DeleteAttendanceMutation from '../../graphql/mutations/delete-attendance.mutation';
 
 function Attendance({ attendance, session }) {
   const [css, theme] = useStyletron();
@@ -58,9 +27,8 @@ function Attendance({ attendance, session }) {
   const {
     course, date, content, open, timer,
   } = attendance.data.attributes;
-  const parsedContent = JSON.parse(content);
 
-  const DATA = parsedContent?.map((c, index) => ({
+  const DATA = content?.map((c, index) => ({
     id: index + 1,
     uid: c.uid,
     avatar: c.avatar,
@@ -83,16 +51,12 @@ function Attendance({ attendance, session }) {
     </HeadingXSmall>
   );
 
-  const manuallyUpdate = (value, uid) => {
-    const studentIndex = parsedContent.findIndex((x) => x.uid === uid);
-    parsedContent[studentIndex].status = value;
+  const manuallyUpdate = async (value, uid) => {
+    const studentIndex = content.findIndex((x) => x.uid === uid);
+    content[studentIndex].status = value;
 
-    updateAttendance({
-      variables: { id: attendance.data.id, content: JSON.stringify(parsedContent) },
-    }).then((res) => {
-      if (res.data) {
-        router.reload();
-      }
+    await updateAttendance({
+      variables: { id: attendance.data.id, content: JSON.stringify(content) },
     });
   };
 
@@ -303,48 +267,6 @@ Attendance.propTypes = {
 };
 
 export default Attendance;
-
-const AttendanceQuery = gql`
-  query Attendance($id: ID!) {
-    attendance(id: $id) {
-      data {
-        id
-        attributes {
-          date
-          open
-          timer
-          content
-          faculty {
-            data {
-              id
-              attributes {
-                uid
-                firstName
-                lastName
-                email
-                avatar {
-                  data {
-                    attributes {
-                      url
-                    }
-                  }
-                }
-              }
-            }
-          }
-          course {
-            data {
-              attributes {
-                title
-                code
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`;
 
 export async function getServerSideProps(context) {
   const session = await getSession(context);

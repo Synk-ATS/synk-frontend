@@ -14,23 +14,33 @@ function StudentAttendance({ student }) {
   const TABLE_DATA = courses.data.map((course, index) => {
     const { title, code, attendances } = course.attributes;
 
-    const sttRecord = JSON.parse(student.attributes?.attendanceRecord);
-    const courseID = parseInt(course.id, 10);
-    const courseIndex = sttRecord.findIndex((attR) => attR.course === courseID);
+    let present;
+    let absent;
+    let percentage;
+    let totalClasses;
 
-    const totalClasses = attendances.data.length;
+    const attendanceRecord = student.attributes?.attendanceRecord;
 
-    const { daysPresent } = sttRecord[courseIndex];
-    const daysAbsent = totalClasses - sttRecord[courseIndex].daysPresent;
-    const percent = ((daysPresent / totalClasses) * 100);
+    if (attendanceRecord) {
+      const courseID = parseInt(course.id, 10);
+      const courseIndex = attendanceRecord.findIndex((attR) => attR.course === courseID);
+
+      totalClasses = attendances.data.length;
+
+      const { daysPresent } = attendanceRecord[courseIndex];
+
+      present = daysPresent;
+      absent = totalClasses - attendanceRecord[courseIndex].daysPresent;
+      percentage = ((daysPresent / totalClasses) * 100).toFixed();
+    }
 
     return {
       sn: index + 1,
       course: title,
       courseCode: code,
-      present: daysPresent ?? 0,
-      absent: daysAbsent ?? 0,
-      percentage: percent ?? 0,
+      present: present ?? 0,
+      absent: absent ?? 0,
+      percentage: percentage ?? 0,
     };
   });
 

@@ -4,7 +4,6 @@ import PropTypes from 'prop-types';
 import { HeadingMedium, ParagraphMedium, ParagraphSmall } from 'baseui/typography';
 import { Block } from 'baseui/block';
 import { getSession } from 'next-auth/react';
-import { gql } from '@apollo/client';
 import { TableBuilder, TableBuilderColumn } from 'baseui/table-semantic';
 import { useStyletron } from 'baseui';
 import { ArrowBendUpLeft } from 'phosphor-react';
@@ -12,33 +11,44 @@ import { Button, SIZE } from 'baseui/button';
 import { useRouter } from 'next/router';
 import Layout from '../../components/layout';
 import { fetchAPI } from '../_app';
+import ReportQuery from '../../graphql/queries/report.query';
 
 function Report({ faculty }) {
   const [css, theme] = useStyletron();
   const router = useRouter();
 
-  const { course: { data: { attributes: { students, attendances } } } } = faculty.attributes;
+  const { course: { data: { attributes: { code, students, attendances } } } } = faculty.attributes;
 
   const TABLE_DATA = students.data.map((student, index) => {
     const {
       uid, firstName, middleName, lastName,
     } = student.attributes;
 
-    const attRecord = JSON.parse(student.attributes?.attendanceRecord);
-    const courseID = parseInt(faculty.attributes.course.data.id, 10);
-    const courseIndex = attRecord.findIndex((attR) => attR.course === courseID);
+    let classes;
+    let present;
+    let absent;
+    let percent;
 
-    const totalClasses = attendances.data.length;
+    const attendanceRecord = student.attributes?.attendanceRecord;
 
-    const present = attRecord[courseIndex].daysPresent;
-    const absent = totalClasses - attRecord[courseIndex].daysPresent;
-    const percent = ((present / totalClasses) * 100);
+    if (attendanceRecord) {
+      const courseID = parseInt(faculty.attributes.course.data.id, 10);
+      const courseIndex = attendanceRecord?.findIndex((attR) => attR.course === courseID);
+
+      classes = attendances.data.length;
+
+      present = attendanceRecord[courseIndex].daysPresent;
+
+      absent = classes - present;
+
+      percent = ((present / classes) * 100);
+    }
 
     return {
       sn: index + 1,
       student: `${lastName}, ${firstName} ${middleName}`,
       studentUID: uid,
-      classes: totalClasses ?? 0,
+      classes: classes ?? 0,
       present: present ?? 0,
       absent: absent ?? 0,
       percentage: percent ?? 0,
@@ -59,9 +69,9 @@ function Report({ faculty }) {
           Go Back
         </Button>
       </Block>
-      <Block marginTop="10px" display="flex" justifyContent="space-between" alignItems="center">
+      <Block marginTop="20px" display="flex" justifyContent="space-between" alignItems="center">
         <HeadingMedium marginTop={0} marginBottom={0}>
-          Attendance Report
+          {`${code} Attendance Report`}
         </HeadingMedium>
       </Block>
       <Block marginTop="20px">
@@ -116,11 +126,7 @@ Report.propTypes = {
 };
 
 Report.getLayout = function getLayout(page) {
-  return (
-    <Layout>
-      {page}
-    </Layout>
-  );
+  return (<Layout>{page}</Layout>);
 };
 
 export default Report;
@@ -141,76 +147,7 @@ export async function getServerSideProps(context) {
   const { user: { facultyID }, jwt } = session;
 
   const { data } = await fetchAPI({
-    query: gql`
-          query Faculty($id: ID!) {
-            faculty(id: $id) {
-              data {
-                id
-                attributes {
-                  uid
-                  designation
-                  firstName
-                  lastName
-                  email
-                  course {
-                    data {
-                      id
-                      attributes {
-                        code
-                        title
-                        attendances {
-                          data {
-                            id
-                            attributes {
-                              date
-                              content
-                              open
-                              timer
-                              course {
-                                data {
-                                  id
-                                  attributes {
-                                    code
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                        students {
-                          data {
-                            id
-                            attributes {
-                              uid
-                              firstName
-                              middleName
-                              lastName
-                              attendanceRecord
-                              avatar {
-                                data {
-                                  attributes {
-                                    url
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                  program {
-                    data {
-                      attributes {
-                        name
-                      }
-                    }
-                  } 
-                }
-              }
-            }
-          }
-        `,
+    query: ReportQuery,
     variables: { id: facultyID },
     token: jwt,
   });

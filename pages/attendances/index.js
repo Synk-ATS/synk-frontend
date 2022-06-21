@@ -1,34 +1,32 @@
+/* eslint-disable react/forbid-prop-types */
 import React from 'react';
 import { getSession, useSession } from 'next-auth/react';
-import { gql } from '@apollo/client';
 import PropTypes from 'prop-types';
 import Layout from '../../components/layout';
 import FacultyAttendance from '../../contents/attendance/faculty-attendance';
 import StudentAttendance from '../../contents/attendance/student-attendance';
 import { fetchAPI } from '../_app';
+import { AttendanceFacultyQuery, AttendanceStudentQuery } from '../../graphql/queries/attendance-page.query';
+import Loading from '../../components/atoms/loading';
 
 function Attendances({ result }) {
   const { data: { user: { role } } } = useSession();
 
-  if (role === 'student') {
-    return (<StudentAttendance student={result} />);
-  }
-
-  if (role === 'faculty') {
-    return (<FacultyAttendance faculty={result} />);
+  switch (role) {
+    case 'faculty':
+      return (<FacultyAttendance faculty={result} />);
+    case 'student':
+      return (<StudentAttendance student={result} />);
+    default:
+      return (<Loading loading />);
   }
 }
 
 Attendances.getLayout = function getLayout(page) {
-  return (
-    <Layout>
-      {page}
-    </Layout>
-  );
+  return (<Layout>{page}</Layout>);
 };
 
 Attendances.propTypes = {
-  // eslint-disable-next-line react/forbid-prop-types
   result: PropTypes.object.isRequired,
 };
 
@@ -54,67 +52,7 @@ export async function getServerSideProps(context) {
     case 'faculty': {
       const { facultyID } = session.user;
       const { data } = await fetchAPI({
-        query: gql`
-          query Faculty($id: ID!) {
-            faculty(id: $id) {
-              data {
-                id
-                attributes {
-                  uid
-                  designation
-                  firstName
-                  lastName
-                  email
-                  course {
-                    data {
-                      id
-                      attributes {
-                        code
-                        title
-                        attendances {
-                          data {
-                            id
-                            attributes {
-                              date
-                              content
-                              open
-                              timer
-                            }
-                          }
-                        }
-                        students {
-                          data {
-                            id
-                            attributes {
-                              uid
-                              firstName
-                              middleName
-                              lastName
-                              avatar {
-                                data {
-                                  attributes {
-                                    url
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                  program {
-                    data {
-                      attributes {
-                        name
-                      }
-                    }
-                  } 
-                }
-              }
-            }
-          }
-        `,
+        query: AttendanceFacultyQuery,
         variables: { id: facultyID },
         token: jwt,
       });
@@ -124,48 +62,7 @@ export async function getServerSideProps(context) {
     case 'student': {
       const { studentID } = session.user;
       const { data } = await fetchAPI({
-        query: gql`
-          query Student($id: ID!) {
-            student(id: $id) {
-              data {
-                id
-                attributes {
-                  uid
-                  attendanceRecord
-                  courses {
-                    data {
-                      id
-                      attributes {
-                        title
-                        code
-                        attendances {
-                          data {
-                            id
-                            attributes {
-                              content
-                              course {
-                                data {
-                                  id
-                                  attributes {
-                                    students {
-                                      data {
-                                        id
-                                      }
-                                    }
-                                  }
-                                }
-                              }
-                            }
-                          }
-                        }
-                      }
-                    }
-                  }
-                }
-              }
-            }
-          }        
-        `,
+        query: AttendanceStudentQuery,
         variables: { id: studentID },
         token: jwt,
       });

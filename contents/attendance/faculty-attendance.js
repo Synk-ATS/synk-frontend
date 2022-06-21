@@ -7,41 +7,11 @@ import { CaretRight, Plus, Table } from 'phosphor-react';
 import { Datepicker } from 'baseui/datepicker';
 import { Button, SIZE } from 'baseui/button';
 import { useSession } from 'next-auth/react';
-import { gql, useMutation } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import { Input } from 'baseui/input';
 import { FlexGrid, FlexGridItem } from 'baseui/flex-grid';
 import { useRouter } from 'next/router';
-
-const CreateAttendance = gql`
-  mutation CreateAttendance($courseID: ID!, $facultyID: ID!, $date: Date!, $content: JSON!, $timer: Int!) {
-    createAttendance(data: {course: $courseID, faculty: $facultyID, date: $date, content: $content, timer: $timer}) {
-      data {
-        id
-        attributes {
-          date
-          open
-          timer
-          content
-          course {
-            data {
-              attributes {
-                title
-              }
-            }
-          }
-          faculty {
-            data {
-              attributes {
-                firstName
-                lastName
-              }
-            }
-          }
-        }
-      }
-    }
-  }
-`;
+import CreateAttendanceMutation from '../../graphql/mutations/create-attendance.mutation';
 
 function FacultyAttendance({ faculty }) {
   const { program, course } = faculty.attributes;
@@ -55,7 +25,7 @@ function FacultyAttendance({ faculty }) {
   const [date, setDate] = React.useState([]);
   const [dateString, setDateString] = React.useState(null);
 
-  const [createAttendance] = useMutation(CreateAttendance, {
+  const [createAttendance] = useMutation(CreateAttendanceMutation, {
     context: { headers: { Authorization: `Bearer ${jwt}` } },
   });
 
@@ -116,7 +86,6 @@ function FacultyAttendance({ faculty }) {
                   name: `${st.attributes.lastName}, ${st.attributes.firstName} ${st.attributes.middleName}`,
                   avatar: st.attributes.avatar.data.attributes.url,
                   status: false,
-                  daysPresent: 0,
                 }));
 
                 createAttendance({
@@ -171,7 +140,7 @@ function FacultyAttendance({ faculty }) {
           flexWrap
         >
           {faculty.attributes.course.data.attributes.attendances.data.map((att) => {
-            const _content = JSON.parse(att.attributes.content);
+            const { content } = att.attributes;
 
             return (
               <FlexGridItem
@@ -182,7 +151,7 @@ function FacultyAttendance({ faculty }) {
                     query: { id: att.id },
                   });
                 }}
-                backgroundColor={att.attributes.open ? 'positive' : 'mono200'}
+                backgroundColor={att.attributes.open ? 'positive' : 'mono900'}
                 overrides={{
                   Block: {
                     style: ({
@@ -197,7 +166,7 @@ function FacultyAttendance({ faculty }) {
                       transitionProperty: 'all',
                       transitionDuration: theme.animation.timing900,
                       ':hover': {
-                        backgroundColor: 'rgba(242,61,79,0.2)',
+                        backgroundColor: 'rgba(242,61,79)',
                       },
                     }),
                   },
@@ -209,7 +178,7 @@ function FacultyAttendance({ faculty }) {
                     textTransform: 'uppercase',
                     fontSize: '0.7rem',
                     letterSpacing: '1.2px',
-                    color: att.attributes.open ? theme.colors.mono400 : theme.colors.mono800,
+                    color: theme.colors.mono600,
                   })}
                   >
                     Attendance
@@ -219,7 +188,7 @@ function FacultyAttendance({ faculty }) {
                     textTransform: 'uppercase',
                     fontSize: '0.7rem',
                     letterSpacing: '1.2px',
-                    color: att.attributes.open ? theme.colors.mono400 : theme.colors.mono800,
+                    color: theme.colors.mono600,
                   })}
                   >
                     {att.id}
@@ -248,7 +217,7 @@ function FacultyAttendance({ faculty }) {
                           fontWeight: '600',
                           fontSize: '1.6rem',
                           lineHeight: '1.6rem',
-                          color: att.attributes.open ? 'white' : theme.colors.mono800,
+                          color: theme.colors.mono100,
                         }),
                       },
                     }}
@@ -257,13 +226,13 @@ function FacultyAttendance({ faculty }) {
                   </ParagraphMedium>
                   <ParagraphXSmall className={css({
                     fontStyle: 'italic',
-                    color: att.attributes.open ? theme.colors.mono400 : theme.colors.mono600,
+                    color: theme.colors.mono600,
                     margin: 0,
                     fontSize: '0.7rem',
                     letterSpacing: '1.2px',
                   })}
                   >
-                    {`${_content.length} STUDENTS`}
+                    {`${content.length} STUDENTS`}
                   </ParagraphXSmall>
                 </Block>
               </FlexGridItem>

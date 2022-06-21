@@ -10,10 +10,12 @@ import {
   Envelope, MapPin, Phone, SignOut,
 } from 'phosphor-react';
 import { useStyletron } from 'baseui';
-import axios from 'axios';
 import PropTypes from 'prop-types';
 import Layout from '../../components/layout';
 import Loading from '../../components/atoms/loading';
+import { fetchAPI } from '../../lib/api';
+import { FacultyQuery } from '../../graphql/queries/faculty.query';
+import { StudentQuery } from '../../graphql/queries/student.query';
 
 function Profile({ profile }) {
   const [, theme] = useStyletron();
@@ -83,7 +85,20 @@ function Profile({ profile }) {
               marginTop="2rem"
               marginBottom="2rem"
             />
-
+            {session.user.role === 'faculty' ? (
+              <ParagraphSmall marginTop={0} marginBottom="1rem" display="flex">
+                <span style={{ fontWeight: '600' }}>Designation:</span>
+                <Block width="10px" />
+                {profile.attributes.designation}
+              </ParagraphSmall>
+            ) : null}
+            <ParagraphSmall marginTop={0} marginBottom="1rem" display="flex">
+              <span style={{ fontWeight: '600' }}>
+                {session.user.role === 'faculty' ? 'Staff ID:' : 'Student ID'}
+              </span>
+              <Block width="10px" />
+              {profile.attributes.uid}
+            </ParagraphSmall>
             <ParagraphSmall marginTop={0} marginBottom="1rem" display="flex">
               <span style={{ fontWeight: '600' }}>Gender:</span>
               <Block width="10px" />
@@ -146,25 +161,31 @@ export async function getServerSideProps(context) {
       },
     };
   }
-  const { email, role } = session.user;
+  const { jwt, user } = session;
+  const { role } = user;
+
   let profile;
+
   switch (role) {
     case 'faculty': {
-      const { data } = await axios.get(`http://localhost:1337/api/faculties?filters[email][$eq]=${email}&populate=%2A`, {
-        headers: {
-          Authorization: `Bearer ${session.jwt}`,
-        },
+      const { facultyID } = user;
+      const { data } = await fetchAPI({
+        query: FacultyQuery,
+        variables: { id: facultyID },
+        token: jwt,
       });
-      profile = { ...data.data[0] };
+      profile = { ...data.faculty.data };
       break;
     }
     case 'student': {
-      const { data } = await axios.get(`http://localhost:1337/api/students?filters[email][$eq]=${email}&populate=%2A`, {
-        headers: {
-          Authorization: `Bearer ${session.jwt}`,
-        },
+      const { studentID } = user;
+
+      const { data } = await fetchAPI({
+        query: StudentQuery,
+        variables: { id: studentID },
+        token: jwt,
       });
-      profile = { ...data.data[0] };
+      profile = { ...data.student.data };
       break;
     }
     default: {

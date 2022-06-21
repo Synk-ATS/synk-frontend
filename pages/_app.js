@@ -10,7 +10,6 @@ import { ApolloProvider } from '@apollo/client';
 import App from 'next/app';
 import { getSession, SessionProvider } from 'next-auth/react';
 import { useRouter } from 'next/router';
-import axios from 'axios';
 import styletron from '../lib/styletron';
 import SynkTheme from '../lib/theme';
 import synkStore from '../redux/store';
@@ -19,6 +18,8 @@ import Loading from '../components/atoms/loading';
 import { setProfile, setSignInType, USER_TYPE } from '../redux/slices/auth.slice';
 import '../styles/globals.css';
 import 'normalize.css';
+import { AppFacultyQuery } from '../graphql/queries/faculty.query';
+import { AppStudentQuery } from '../graphql/queries/student.query';
 
 function MyApp({ Component, pageProps }) {
   const getLayout = Component.getLayout ?? ((page) => page);
@@ -86,30 +87,43 @@ MyApp.getInitialProps = async (context) => {
 
   if (session) {
     const { dispatch } = _store;
-
-    const { email, role } = session.user;
+    const { jwt, user } = session;
+    const { role } = user;
 
     let result;
 
     switch (role) {
       case 'faculty': {
+        const { facultyID } = user;
         dispatch(setSignInType(USER_TYPE.faculty));
-        const { data } = await axios.get(`http://localhost:1337/api/faculties?filters[email][$eq]=${email}&populate=%2A`, {
-          headers: {
-            Authorization: `Bearer ${session.jwt}`,
-          },
+        // const { data } = await axios.get(`http://localhost:1337/api/faculties?filters[email][$eq]=${email}&populate=%2A`, {
+        //   headers: {
+        //     Authorization: `Bearer ${session.jwt}`,
+        //   },
+        // });
+        const { data } = await fetchAPI({
+          query: AppFacultyQuery,
+          variables: { id: facultyID },
+          token: jwt,
         });
-        result = { ...data.data[0] };
+
+        result = { ...data.faculty.data };
         break;
       }
       case 'student': {
+        const { studentID } = user;
         dispatch(setSignInType(USER_TYPE.student));
-        const { data } = await axios.get(`http://localhost:1337/api/students?filters[email][$eq]=${email}&populate=%2A`, {
-          headers: {
-            Authorization: `Bearer ${session.jwt}`,
-          },
+        // const { data } = await axios.get(`http://localhost:1337/api/students?filters[email][$eq]=${email}&populate=%2A`, {
+        //   headers: {
+        //     Authorization: `Bearer ${session.jwt}`,
+        //   },
+        // });
+        const { data } = await fetchAPI({
+          query: AppStudentQuery,
+          variables: { id: studentID },
+          token: jwt,
         });
-        result = { ...data.data[0] };
+        result = { ...data.student.data };
         break;
       }
       default:

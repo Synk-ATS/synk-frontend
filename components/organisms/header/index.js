@@ -11,6 +11,7 @@ import { selectAuth } from '../../../redux/slices/auth.slice';
 
 function Header() {
   const router = useRouter();
+
   const {
     profile: { attributes: { firstName, lastName, avatar } },
   } = useSelector(selectAuth);
