@@ -22,9 +22,9 @@ export default function SignIn({ csrfToken }) {
   const { userType } = useSelector(selectAuth);
 
   const [loading, setLoading] = React.useState(false);
-  const [email, setEmail] = React.useState('balogun.peter@synk.io');
+  const [email, setEmail] = React.useState('');
   const [emailError, setEmailError] = React.useState('');
-  const [password, setPassword] = React.useState('faculty2022');
+  const [password, setPassword] = React.useState('');
   const [passwordError, setPasswordError] = React.useState('');
   const [loginErrVisible, setLoginErrVisible] = React.useState(false);
 
