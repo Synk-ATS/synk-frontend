@@ -5,9 +5,9 @@ import PropTypes from 'prop-types';
 import Layout from '../../components/layout';
 import FacultyAttendance from '../../contents/attendance/faculty-attendance';
 import StudentAttendance from '../../contents/attendance/student-attendance';
-import { fetchAPI } from '../_app';
 import { AttendanceFacultyQuery, AttendanceStudentQuery } from '../../graphql/queries/attendance-page.query';
 import Loading from '../../components/atoms/loading';
+import { fetchAPI } from '../../lib/api';
 
 function Attendances({ result }) {
   const { data: { user: { role } } } = useSession();

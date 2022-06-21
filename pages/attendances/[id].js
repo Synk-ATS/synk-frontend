@@ -1,7 +1,7 @@
 /* eslint-disable react/forbid-prop-types,react/jsx-boolean-value */
 import React from 'react';
 import { getSession } from 'next-auth/react';
-import { gql, useMutation } from '@apollo/client';
+import { useMutation } from '@apollo/client';
 import { Block } from 'baseui/block';
 import {
   HeadingLarge, HeadingXSmall, ParagraphLarge, ParagraphMedium,
@@ -15,10 +15,10 @@ import PropTypes from 'prop-types';
 import { useRouter } from 'next/router';
 import Countdown from 'react-countdown';
 import Layout from '../../components/layout';
-import { fetchAPI } from '../_app';
-import AttendanceQuery from '../../graphql/queries/attendance.query';
+import { AttendanceQuery } from '../../graphql/queries/attendance.query';
 import UpdateAttendanceMutation from '../../graphql/mutations/update-attendance.mutation';
 import DeleteAttendanceMutation from '../../graphql/mutations/delete-attendance.mutation';
+import { fetchAPI } from '../../lib/api';
 
 function Attendance({ attendance, session }) {
   const [css, theme] = useStyletron();
@@ -281,10 +281,10 @@ export async function getServerSideProps(context) {
     };
   }
 
+  const { jwt } = session;
+
   const { data: { attendance } } = await fetchAPI({
-    query: AttendanceQuery,
-    variables: { id: context.params.id },
-    token: session.jwt,
+    query: AttendanceQuery, variables: { id: context.params.id }, token: jwt,
   });
 
   return { props: { session, attendance } };

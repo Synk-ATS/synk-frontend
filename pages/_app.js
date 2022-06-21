@@ -13,13 +13,14 @@ import { useRouter } from 'next/router';
 import styletron from '../lib/styletron';
 import SynkTheme from '../lib/theme';
 import synkStore from '../redux/store';
-import { initializeApollo, useApollo } from '../lib/apollo';
+import { useApollo } from '../lib/apollo';
 import Loading from '../components/atoms/loading';
 import { setProfile, setSignInType, USER_TYPE } from '../redux/slices/auth.slice';
 import '../styles/globals.css';
 import 'normalize.css';
 import { AppFacultyQuery } from '../graphql/queries/faculty.query';
 import { AppStudentQuery } from '../graphql/queries/student.query';
+import { fetchAPI } from '../lib/api';
 
 function MyApp({ Component, pageProps }) {
   const getLayout = Component.getLayout ?? ((page) => page);
@@ -65,20 +66,6 @@ function MyApp({ Component, pageProps }) {
 
 export default MyApp;
 
-export async function fetchAPI({ query, variables, token }) {
-  const apollo = initializeApollo();
-  // eslint-disable-next-line no-return-await
-  return await apollo.query({
-    query,
-    variables,
-    context: {
-      headers: {
-        Authorization: token ? `Bearer ${token}` : '',
-      },
-    },
-  });
-}
-
 MyApp.getInitialProps = async (context) => {
   const appProps = await App.getInitialProps(context);
   const _store = synkStore();
@@ -96,15 +83,8 @@ MyApp.getInitialProps = async (context) => {
       case 'faculty': {
         const { facultyID } = user;
         dispatch(setSignInType(USER_TYPE.faculty));
-        // const { data } = await axios.get(`http://localhost:1337/api/faculties?filters[email][$eq]=${email}&populate=%2A`, {
-        //   headers: {
-        //     Authorization: `Bearer ${session.jwt}`,
-        //   },
-        // });
         const { data } = await fetchAPI({
-          query: AppFacultyQuery,
-          variables: { id: facultyID },
-          token: jwt,
+          query: AppFacultyQuery, variables: { id: facultyID }, token: jwt,
         });
 
         result = { ...data.faculty.data };
@@ -113,15 +93,8 @@ MyApp.getInitialProps = async (context) => {
       case 'student': {
         const { studentID } = user;
         dispatch(setSignInType(USER_TYPE.student));
-        // const { data } = await axios.get(`http://localhost:1337/api/students?filters[email][$eq]=${email}&populate=%2A`, {
-        //   headers: {
-        //     Authorization: `Bearer ${session.jwt}`,
-        //   },
-        // });
         const { data } = await fetchAPI({
-          query: AppStudentQuery,
-          variables: { id: studentID },
-          token: jwt,
+          query: AppStudentQuery, variables: { id: studentID }, token: jwt,
         });
         result = { ...data.student.data };
         break;
