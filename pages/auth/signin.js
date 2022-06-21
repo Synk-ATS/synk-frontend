@@ -1,18 +1,20 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import { getCsrfToken, getSession, signIn } from 'next-auth/react';
-import { HeadingXXLarge, ParagraphLarge, ParagraphSmall } from 'baseui/typography';
+import {
+  DisplayLarge,
+  HeadingXXLarge, ParagraphLarge, ParagraphSmall,
+} from 'baseui/typography';
 import { useStyletron } from 'baseui';
 import { FormControl } from 'baseui/form-control';
 import { Input } from 'baseui/input';
 import { Button } from 'baseui/button';
 import { useRouter } from 'next/router';
 import { FlexGrid, FlexGridItem } from 'baseui/flex-grid';
-import Image from 'next/image';
 import { Block } from 'baseui/block';
 import { useSelector } from 'react-redux';
 import Loading from '../../components/atoms/loading';
-import { selectAuth, USER_TYPE } from '../../redux/slices/auth.slice';
+import { selectAuth } from '../../redux/slices/auth.slice';
 
 export default function SignIn({ csrfToken }) {
   const [css] = useStyletron();
@@ -87,12 +89,22 @@ export default function SignIn({ csrfToken }) {
         >
           <Block paddingBottom={['0px', '0px', '0px', '60px']}>
             <Block>
-              <Image src="/logo-light.svg" width="300px" height="130px" objectFit="contain" />
+              <DisplayLarge overrides={{
+                Block: {
+                  style: ({ $theme }) => ({
+                    color: $theme.colors.mono100,
+                    fontWeight: '600',
+                  }),
+                },
+              }}
+              >
+                Raftel
+              </DisplayLarge>
             </Block>
             <Block>
               <ParagraphLarge color="accent">
                 Seamlessly organize and track all your class attendances
-                using Synk&apos;s excellent library and facial recognition
+                using Raftel&apos;s excellent library and facial recognition
                 technology.
               </ParagraphLarge>
               <ParagraphSmall color="mono100">

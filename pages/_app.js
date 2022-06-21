@@ -19,7 +19,6 @@ import Loading from '../components/atoms/loading';
 import { setProfile, setSignInType, USER_TYPE } from '../redux/slices/auth.slice';
 import '../styles/globals.css';
 import 'normalize.css';
-import { CookiesProvider } from 'react-cookie';
 
 function MyApp({ Component, pageProps }) {
   const getLayout = Component.getLayout ?? ((page) => page);
@@ -36,8 +35,6 @@ function MyApp({ Component, pageProps }) {
       if (url !== router.pathname) {
         setLoading(true);
       }
-
-      setLoading(false);
     };
 
     const handleComplete = () => setLoading(false);
@@ -49,20 +46,18 @@ function MyApp({ Component, pageProps }) {
 
   return (
     <SessionProvider session={session}>
-      <CookiesProvider>
-        <Provider store={_store}>
-          <PersistGate loading={null} persistor={persistor}>
-            <ApolloProvider client={client}>
-              <StyletronProvider value={styletron}>
-                <BaseProvider theme={SynkTheme}>
-                  <Loading loading={loading} />
-                  {getLayout(<Component {...pageProps} />)}
-                </BaseProvider>
-              </StyletronProvider>
-            </ApolloProvider>
-          </PersistGate>
-        </Provider>
-      </CookiesProvider>
+      <Provider store={_store}>
+        <PersistGate loading={null} persistor={persistor}>
+          <ApolloProvider client={client}>
+            <StyletronProvider value={styletron}>
+              <BaseProvider theme={SynkTheme}>
+                {loading ? <Loading loading={loading} /> : null}
+                {getLayout(<Component {...pageProps} />)}
+              </BaseProvider>
+            </StyletronProvider>
+          </ApolloProvider>
+        </PersistGate>
+      </Provider>
     </SessionProvider>
   );
 }

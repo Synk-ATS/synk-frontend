@@ -1,4 +1,4 @@
-/* eslint-disable react/no-array-index-key */
+/* eslint-disable react/no-array-index-key,react/no-danger */
 import React from 'react';
 import Document, {
   Html, Head, Main, NextScript,

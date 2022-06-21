@@ -1,5 +1,4 @@
 import React from 'react';
-import Image from 'next/image';
 import Link from 'next/link';
 import { useStyletron } from 'baseui';
 
@@ -18,14 +17,10 @@ function Logo() {
         borderBottomWidth: '3px',
         borderBottomStyle: 'solid',
         borderBottomColor: theme.colors.accent,
+        color: theme.colors.mono100,
       })}
       >
-        <Image
-          src="/logo-light.svg"
-          alt="Synk Logo"
-          height="80%"
-          width="80%"
-        />
+        <h1>Raftel</h1>
       </div>
     </Link>
   );

@@ -1,3 +1,4 @@
+/* eslint-disable react/forbid-prop-types */
 import React from 'react';
 import { getSession, signOut, useSession } from 'next-auth/react';
 import { Button, SIZE } from 'baseui/button';
@@ -10,11 +11,12 @@ import {
 } from 'phosphor-react';
 import { useStyletron } from 'baseui';
 import axios from 'axios';
+import PropTypes from 'prop-types';
 import Layout from '../../components/layout';
 import Loading from '../../components/atoms/loading';
 
 function Profile({ profile }) {
-  const [css, theme] = useStyletron();
+  const [, theme] = useStyletron();
   const { status, data: session } = useSession();
 
   return (
@@ -120,7 +122,9 @@ function Profile({ profile }) {
 
 export default Profile;
 
-Profile.propTypes = {};
+Profile.propTypes = {
+  profile: PropTypes.object.isRequired,
+};
 
 Profile.getLayout = function getLayout(page) {
   return (

@@ -1,6 +1,8 @@
 import NextAuth from 'next-auth';
 import CredentialsProvider from 'next-auth/providers/credentials';
 import axios from 'axios';
+import { gql } from '@apollo/client';
+import { fetchAPI } from '../../_app';
 
 const options = {
   providers: [
@@ -12,16 +14,59 @@ const options = {
       },
       async authorize(credentials) {
         if ('email' in credentials && 'password' in credentials) {
-          const { data } = await axios.post(process.env.AUTH_API, {
+          const { data } = await axios.post(`${process.env.AUTH_API}/api/auth/local`, {
             identifier: credentials.email,
             password: credentials.password,
           });
 
-          const { data: { role } } = await axios.get('http://localhost:1337/api/users/me', {
+          const { data: { role } } = await axios.get(`${process.env.NEXT_PUBLIC_API_URL}/api/users/me`, {
             headers: { Authorization: `Bearer ${data.jwt}` },
           });
 
-          const user = { ...data, role: role.type };
+          let user;
+
+          switch (role.type) {
+            case 'faculty': {
+              const { data: { faculties } } = await fetchAPI({
+                query: gql`
+                  query Faculties($email: String!) {
+                    faculties(filters: {email: {eq: $email}}){
+                      data {
+                        id
+                      }
+                    }
+                  }
+                `,
+                variables: { email: data.user.email },
+                token: data.jwt,
+              });
+              const facultyID = faculties.data[0].id;
+              user = { ...data, role: role.type, facultyID };
+              break;
+            }
+            case 'student': {
+              const { data: { students } } = await fetchAPI({
+                query: gql`
+                  query Students($email: String!) {
+                    students(filters: {email: {eq: $email}}){
+                      data {
+                        id
+                      }
+                    }
+                  }
+                `,
+                variables: { email: data.user.email },
+                token: data.jwt,
+              });
+              const studentID = students.data[0].id;
+              user = { ...data, role: role.type, studentID };
+              break;
+            }
+            default: {
+              user = {};
+            }
+          }
+
           if (user) {
             return user;
           }
@@ -46,7 +91,24 @@ const options = {
     async session({ session, token }) {
       const _session = session;
       _session.jwt = token.jwt;
-      _session.user = { ...token.user.user, role: token.user.role };
+      switch (token.user.role) {
+        case 'faculty':
+          _session.user = {
+            ...token.user.user,
+            role: token.user.role,
+            facultyID: token.user.facultyID,
+          };
+          break;
+        case 'student':
+          _session.user = {
+            ...token.user.user,
+            role: token.user.role,
+            studentID: token.user.studentID,
+          };
+          break;
+        default:
+          return null;
+      }
       await _session;
       return _session;
     },

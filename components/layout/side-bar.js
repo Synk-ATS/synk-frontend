@@ -2,7 +2,7 @@ import React from 'react';
 import { useStyletron } from 'baseui';
 import {
   Books,
-  Checks, GearSix, Layout, Student, Users,
+  Checks, Layout, Student,
 } from 'phosphor-react';
 import { useRouter } from 'next/router';
 import { toggleIsExpanded, TreeView } from 'baseui/tree-view';
@@ -74,34 +74,16 @@ const items = [
     icon: (<Layout />),
   },
   {
-    id: '/attendance',
-    title: 'Attendance',
+    id: '/attendances',
+    title: 'Attendances',
     label: customLabel,
     icon: (<Checks />),
   },
   {
-    id: '/biometrics',
-    title: 'Biometrics',
-    label: customLabel,
-    icon: (<Checks />),
-  },
-  {
-    id: '#students',
+    id: '/students',
     title: 'Students',
     label: customLabel,
     icon: (<Student />),
-  },
-  {
-    id: '#users',
-    title: 'Users',
-    label: customLabel,
-    icon: (<Users />),
-  },
-  {
-    id: '#settings',
-    title: 'Settings',
-    label: customLabel,
-    icon: (<GearSix />),
   },
 ];
 
@@ -113,14 +95,8 @@ const studentItems = [
     icon: (<Layout />),
   },
   {
-    id: '/attendance',
-    title: 'Attendance',
-    label: customLabel,
-    icon: (<Checks />),
-  },
-  {
-    id: '/biometrics',
-    title: 'Biometrics',
+    id: '/attendances',
+    title: 'Attendances',
     label: customLabel,
     icon: (<Checks />),
   },
@@ -129,12 +105,6 @@ const studentItems = [
     title: 'Courses',
     label: customLabel,
     icon: (<Books />),
-  },
-  {
-    id: '#settings',
-    title: 'Settings',
-    label: customLabel,
-    icon: (<GearSix />),
   },
 ];
 

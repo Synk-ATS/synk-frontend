@@ -2,29 +2,33 @@ import React from 'react';
 import { useStyletron } from 'baseui';
 import PropTypes from 'prop-types';
 import { Block } from 'baseui/block';
-import { HeadingMedium, ParagraphLarge, ParagraphMedium } from 'baseui/typography';
-import {
-  Camera, CaretRight, Check, Clock, Plus, X,
-} from 'phosphor-react';
+import { HeadingMedium, ParagraphMedium, ParagraphXSmall } from 'baseui/typography';
+import { CaretRight, Plus, Table } from 'phosphor-react';
 import { Datepicker } from 'baseui/datepicker';
-import { Button } from 'baseui/button';
-import { TableBuilder, TableBuilderColumn } from 'baseui/table-semantic';
-import { Avatar } from 'baseui/avatar';
-import { ButtonGroup, MODE } from 'baseui/button-group';
-import { useSelector } from 'react-redux';
+import { Button, SIZE } from 'baseui/button';
 import { useSession } from 'next-auth/react';
-import axios from 'axios';
-import { useSnackbar } from 'baseui/snackbar';
 import { gql, useMutation } from '@apollo/client';
-import { selectAuth } from '../../redux/slices/auth.slice';
+import { Input } from 'baseui/input';
+import { FlexGrid, FlexGridItem } from 'baseui/flex-grid';
+import { useRouter } from 'next/router';
 
-const UpdateAttendanceQuery = gql`
-  mutation UpdateAttendance($id: ID!, $data: AttendanceInput!) {
-    updateAttendance(id: $id, data: $data) {
+const CreateAttendance = gql`
+  mutation CreateAttendance($courseID: ID!, $facultyID: ID!, $date: Date!, $content: JSON!, $timer: Int!) {
+    createAttendance(data: {course: $courseID, faculty: $facultyID, date: $date, content: $content, timer: $timer}) {
       data {
         id
         attributes {
+          date
           open
+          timer
+          content
+          course {
+            data {
+              attributes {
+                title
+              }
+            }
+          }
           faculty {
             data {
               attributes {
@@ -39,260 +43,233 @@ const UpdateAttendanceQuery = gql`
   }
 `;
 
-function FacultyAttendance({ students }) {
-  const {
-    profile: {
-      id: facultyID,
-      attributes: {
-        course: {
-          data: {
-            id: courseID,
-            attributes: {
-              title: course,
-            },
-          },
-        },
-        program: {
-          data: {
-            attributes: {
-              name: program,
-            },
-          },
-        },
-      },
-    },
-  } = useSelector(selectAuth);
+function FacultyAttendance({ faculty }) {
+  const { program, course } = faculty.attributes;
 
   const [css, theme] = useStyletron();
+  const router = useRouter();
 
   const { data: { jwt } } = useSession();
 
-  const [selected, setSelected] = React.useState();
+  const [timer, setTimer] = React.useState(60);
+  const [date, setDate] = React.useState([]);
+  const [dateString, setDateString] = React.useState(null);
 
-  const [date, setDate] = React.useState(null);
-  const [created, setCreated] = React.useState(false);
-  const [open, setOpen] = React.useState(false);
-  const [attendance, setAttendance] = React.useState(null);
-
-  const today = new Date('YYYY-MM-DD');
-
-  const { enqueue } = useSnackbar();
-
-  const DATA = students.map((student, i) => ({
-    id: student.id,
-    uid: student.attributes.uid,
-    avatar: student.attributes.avatar.data.attributes.url,
-    name: `${student.attributes.lastName}, ${student.attributes.firstName} ${student.attributes.middleName}`,
-    status: true,
-    capture: () => { },
-  }));
-
-  const [updateAttendance, { data: updatedAttendance }] = useMutation(UpdateAttendanceQuery);
+  const [createAttendance] = useMutation(CreateAttendance, {
+    context: { headers: { Authorization: `Bearer ${jwt}` } },
+  });
 
   return (
     <Block
       paddingLeft={['20px', '20px', '40px', '40px']}
       paddingRight={['20px', '20px', '40px', '40px']}
     >
-      <HeadingMedium marginBottom={0}>Class Attendance</HeadingMedium>
-      <Block display="flex" alignItems="center">
-        <p style={{ color: theme.colors.mono700 }}>{program}</p>
-        <CaretRight style={{ marginInline: '10px' }} />
-        <p style={{ color: theme.colors.mono1000 }}>{course}</p>
+      <Block marginTop="30px" display="flex" justifyContent="space-between" alignItems="center">
+        <HeadingMedium marginTop={0} marginBottom={0}>Class Attendances</HeadingMedium>
       </Block>
-      <Block display="flex" alignItems="center" marginTop="20px">
+      <Block display="flex" alignItems="center">
+        <p style={{ color: theme.colors.mono700 }}>{program.data.attributes.name}</p>
+        <CaretRight style={{ marginInline: '10px' }} />
+        <p style={{ color: theme.colors.mono1000 }}>{course.data.attributes.title}</p>
+      </Block>
+
+      <Block display="flex" alignItems="center" marginTop="10px">
         <Block>
+          <Input
+            size={SIZE.compact}
+            value={timer}
+            onChange={(e) => setTimer(e.target.value)}
+            placeholder="Timer"
+            type="number"
+            clearOnEscape
+            min={60}
+            max={120}
+            overrides={{ Root: { style: ({ width: '100px' }) } }}
+          />
+        </Block>
+        <Block marginLeft="20px">
           <Datepicker
+            size={SIZE.compact}
             aria-label="Select a date"
             value={date}
-            onChange={({ date }) => setDate(Array.isArray(date) ? date : [date])}
+            onChange={({ date }) => {
+              setDate(Array.isArray(date) ? date : [date]);
+              setDateString(date?.toLocaleString());
+            }}
             formatString="yyyy-MM-dd"
             placeholder="Select class date"
             mask="9999-99-99"
-            minDate={today.getDate()}
+            minDate={new Date()}
+            // maxDate={new Date()}
           />
         </Block>
         <Block marginLeft="20px">
           <Button
+            size={SIZE.compact}
             startEnhancer={(<Plus />)}
-            onClick={async () => {
-              if (date !== null) {
-                const result = await axios.post('http://localhost:1337/api/attendances', {
-                  data: {
-                    course: courseID,
-                    faculty: facultyID,
-                    date: new Date(),
-                    content: '',
-                  },
-                  config: {
-                    headers: {
-                      Authorization: `Bearer ${jwt}`,
-                    },
-                  },
-                });
+            disabled={dateString === undefined || dateString === null || !timer}
+            onClick={() => {
+              if (date.length !== 0) {
+                const newContent = course.data.attributes.students.data.map((st) => ({
+                  id: st.id,
+                  uid: st.attributes.uid,
+                  name: `${st.attributes.lastName}, ${st.attributes.firstName} ${st.attributes.middleName}`,
+                  avatar: st.attributes.avatar.data.attributes.url,
+                  status: false,
+                  daysPresent: 0,
+                }));
 
-                if (result.data) {
-                  setAttendance(result.data.data);
-                  enqueue({
-                    message: `Attendance for ${course} has been created. Click Open Now to begin marking.`,
-                    startEnhancer: ({ size }) => <Check size={size} />,
+                createAttendance({
+                  variables: {
+                    courseID: faculty.attributes.course.data.id,
+                    facultyID: faculty.id,
+                    date: date[0].toLocaleDateString('en-CA'),
+                    content: JSON.stringify(newContent),
+                    open: false,
+                    timer: parseInt(timer.toString(), 10),
+                  },
+                }).then(async (result) => {
+                  await router.push({
+                    pathname: '/attendances/[id]',
+                    query: { id: result.data.createAttendance.data.id },
                   });
-                  setCreated(true);
-                }
+                });
               }
             }}
-            disabled={date === null || open}
           >
             Add Attendance
           </Button>
         </Block>
         <Block marginLeft="20px">
           <Button
-            disabled={!created || open}
-            onClick={async () => {
-              if (attendance !== null) {
-                const result = await axios.put(`http://localhost:1337/api/attendances/${attendance.id}`, {
-                  data: { open: true },
-                  config: {
-                    headers: {
-                      Authorization: `Bearer ${jwt}`,
-                    },
-                  },
-                });
-
-                if (result.data.data.attributes.open === true) {
-                  enqueue({
-                    message: `Attendance for ${course} is now open.`,
-                    startEnhancer: ({ size }) => <Check size={size} />,
-                  });
-                  setOpen(true);
-                }
-              }
-            }}
+            size={SIZE.compact}
+            startEnhancer={(<Table />)}
+            onClick={() => router.push('/attendances/report')}
           >
-            Open Now
-          </Button>
-        </Block>
-        <Block marginLeft="20px">
-          <Button
-            disabled={!open}
-            onClick={async () => {
-              const result = await axios.put(`http://localhost:1337/api/attendances/:${attendance.id}`, {
-                data: { open: false },
-                config: {
-                  headers: {
-                    Authorization: `Bearer ${jwt}`,
-                  },
-                },
-              });
-
-              if (result.data.data.attributes.open === false) {
-                enqueue({
-                  message: `Attendance for ${course} is now closed.`,
-                  startEnhancer: ({ size }) => <Check size={size} />,
-                });
-                // setOpen(false);
-                // setCreated(false);
-              }
-            }}
-          >
-            Close Now
+            Report
           </Button>
         </Block>
       </Block>
-      <Block marginTop="20px" display={open ? 'block' : 'none'}>
-        <TableBuilder data={DATA}>
-          <TableBuilderColumn header="#">
-            {(row) => <ParagraphMedium maxWidth="30px">{row.id}</ParagraphMedium>}
-          </TableBuilderColumn>
-          <TableBuilderColumn header="AVATAR">
-            {(row) => (
-              <Block maxWidth="50px">
-                <Avatar size="48px" src={row.avatar} name="" />
-              </Block>
-            )}
-          </TableBuilderColumn>
-          <TableBuilderColumn header="STUDENT NAME">
-            {(row) => (
-              <Block>
-                <ParagraphLarge margin={0} className={css({ fontWeight: '600' })}>
-                  {row.name}
-                </ParagraphLarge>
-                <p style={{ margin: 0, letterSpacing: '1px', color: theme.colors.mono700 }}>{row.uid}</p>
-              </Block>
-            )}
-          </TableBuilderColumn>
-          <TableBuilderColumn header="STATUS">
-            {(row) => (
-              <Block maxWidth="400px" backgroundColor="pink">
-                {row.status}
-                <ButtonGroup
-                  mode={MODE.radio}
-                  selected={selected}
-                  onClick={(event, index) => {
-                    setSelected(index);
+      <Block marginTop="4px">
+        <ParagraphXSmall
+          color="negative"
+          className={css({
+            letterSpacing: '1px',
+            textTransform: 'uppercase',
+            fontSize: '0.76rem',
+          })}
+        >
+          MIN: 60 secs;
+          <span style={{ marginLeft: '12px' }}>MAX: 120 secs.</span>
+        </ParagraphXSmall>
+      </Block>
+      <Block marginTop="30px">
+        <FlexGrid
+          flexGridColumnCount={5}
+          flexGridColumnGap="2px"
+          flexGridRowGap="2px"
+          flexWrap
+        >
+          {faculty.attributes.course.data.attributes.attendances.data.map((att) => {
+            const _content = JSON.parse(att.attributes.content);
+
+            return (
+              <FlexGridItem
+                key={att.id}
+                onClick={async () => {
+                  await router.push({
+                    pathname: '/attendances/[id]',
+                    query: { id: att.id },
+                  });
+                }}
+                backgroundColor={att.attributes.open ? 'positive' : 'mono200'}
+                overrides={{
+                  Block: {
+                    style: ({
+                      aspectRatio: '1 / 1',
+                      paddingTop: '1.2rem',
+                      paddingRight: '1.2rem',
+                      paddingBottom: '1.2rem',
+                      paddingLeft: '1.2rem',
+                      cursor: 'pointer',
+                      display: 'grid',
+                      alignItems: 'center',
+                      transitionProperty: 'all',
+                      transitionDuration: theme.animation.timing900,
+                      ':hover': {
+                        backgroundColor: 'rgba(242,61,79,0.2)',
+                      },
+                    }),
+                  },
+                }}
+              >
+                <Block display="flex" justifyContent="space-between" alignItems="center">
+                  <ParagraphXSmall className={css({
+                    margin: 0,
+                    textTransform: 'uppercase',
+                    fontSize: '0.7rem',
+                    letterSpacing: '1.2px',
+                    color: att.attributes.open ? theme.colors.mono400 : theme.colors.mono800,
+                  })}
+                  >
+                    Attendance
+                  </ParagraphXSmall>
+                  <ParagraphXSmall className={css({
+                    margin: 0,
+                    textTransform: 'uppercase',
+                    fontSize: '0.7rem',
+                    letterSpacing: '1.2px',
+                    color: att.attributes.open ? theme.colors.mono400 : theme.colors.mono800,
+                  })}
+                  >
+                    {att.id}
+                  </ParagraphXSmall>
+                </Block>
+                <Block
+                  overrides={{
+                    Block: {
+                      style: ({
+                        marginTop: 0,
+                        marginBottom: 0,
+                        maxHeight: '4rem',
+                        height: '4rem',
+                        display: 'grid',
+                        alignItems: 'flex-end',
+                      }),
+                    },
                   }}
                 >
-                  <Button
-                    startEnhancer={(<Check />)}
+                  <ParagraphMedium
                     overrides={{
-                      BaseButton: {
-                        style: ({ $theme, $isSelected }) => ({
-                          width: '100%',
-                          backgroundColor: (selected === 0 && $isSelected)
-                            ? $theme.colors.positive
-                            : $theme.colors.mono300,
+                      Block: {
+                        style: ({
+                          marginTop: 0,
+                          marginBottom: 0,
+                          fontWeight: '600',
+                          fontSize: '1.6rem',
+                          lineHeight: '1.6rem',
+                          color: att.attributes.open ? 'white' : theme.colors.mono800,
                         }),
                       },
                     }}
                   >
-                    PRESENT
-                  </Button>
-                  <Button
-                    startEnhancer={(<X />)}
-                    overrides={{
-                      BaseButton: {
-                        style: ({ $theme, $isSelected }) => ({
-                          width: '100%',
-                          backgroundColor: (selected === 1 && $isSelected)
-                            ? $theme.colors.negative
-                            : $theme.colors.mono300,
-
-                        }),
-                      },
-                    }}
+                    {att.attributes.date}
+                  </ParagraphMedium>
+                  <ParagraphXSmall className={css({
+                    fontStyle: 'italic',
+                    color: att.attributes.open ? theme.colors.mono400 : theme.colors.mono600,
+                    margin: 0,
+                    fontSize: '0.7rem',
+                    letterSpacing: '1.2px',
+                  })}
                   >
-                    ABSENT
-                  </Button>
-                  <Button
-                    startEnhancer={(<Clock />)}
-                    overrides={{
-                      BaseButton: {
-                        style: ({ $theme, $isSelected }) => ({
-                          width: '100%',
-                          backgroundColor: (selected === 2 && $isSelected)
-                            ? $theme.colors.warning
-                            : $theme.colors.mono300,
-
-                        }),
-                      },
-                    }}
-                  >
-                    LATE
-                  </Button>
-                </ButtonGroup>
-              </Block>
-            )}
-          </TableBuilderColumn>
-          <TableBuilderColumn header="CAPTURE">
-            {(row) => (
-              <Block>
-                {row.capture}
-                <Button><Camera /></Button>
-              </Block>
-            )}
-          </TableBuilderColumn>
-        </TableBuilder>
+                    {`${_content.length} STUDENTS`}
+                  </ParagraphXSmall>
+                </Block>
+              </FlexGridItem>
+            );
+          })}
+        </FlexGrid>
       </Block>
     </Block>
   );
@@ -300,7 +277,7 @@ function FacultyAttendance({ students }) {
 
 FacultyAttendance.propTypes = {
   // eslint-disable-next-line react/forbid-prop-types
-  students: PropTypes.any.isRequired,
+  faculty: PropTypes.any.isRequired,
 };
 
 export default FacultyAttendance;
