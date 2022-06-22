@@ -178,7 +178,7 @@ function Code({ course, attendance }) {
       id: att.id,
       date: att.attributes.date,
       faculty,
-      status: content[index].status,
+      status: content[index]?.status,
     };
   });
 
