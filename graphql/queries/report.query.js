@@ -32,6 +32,14 @@ const ReportQuery = gql`
                             }
                           }
                         }
+                        attendances {
+                          data {
+                            id
+                            attributes {
+                              content  
+                            }
+                          } 
+                        }
                       }
                     }
                   }

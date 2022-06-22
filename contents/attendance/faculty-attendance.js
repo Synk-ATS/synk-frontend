@@ -96,6 +96,7 @@ function FacultyAttendance({ faculty }) {
                     content: JSON.stringify(newContent),
                     open: false,
                     timer: parseInt(timer.toString(), 10),
+                    students: course.data.attributes.students.data.map((st) => st.id),
                   },
                 }).then(async (result) => {
                   await router.push({

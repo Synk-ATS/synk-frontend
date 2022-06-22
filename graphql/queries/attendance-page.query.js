@@ -68,6 +68,14 @@ export const AttendanceStudentQuery = gql`
           attributes {
             uid
             attendanceRecord
+            attendances {
+              data {
+                id
+                attributes {
+                  content
+                }
+              }
+            }
             courses {
               data {
                 id

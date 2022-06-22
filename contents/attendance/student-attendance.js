@@ -14,33 +14,29 @@ function StudentAttendance({ student }) {
   const TABLE_DATA = courses.data.map((course, index) => {
     const { title, code, attendances } = course.attributes;
 
-    let present;
-    let absent;
-    let percentage;
-    let totalClasses;
+    const classes = attendances.data.length;
 
-    const attendanceRecord = student.attributes?.attendanceRecord;
+    const present = attendances.data.map((st) => {
+      const { content } = st.attributes;
+      return content.filter((c) => c.id === student.id && c.status === true).length;
+    }).reduce((p, c) => p + c, 0);
 
-    if (attendanceRecord) {
-      const courseID = parseInt(course.id, 10);
-      const courseIndex = attendanceRecord.findIndex((attR) => attR.course === courseID);
+    const absent = attendances.data.map((st) => {
+      const { content } = st.attributes;
+      return content.filter((c) => c.id === student.id && c.status === false).length;
+    }).reduce((p, c) => p + c, 0);
 
-      totalClasses = attendances.data.length;
-
-      const { daysPresent } = attendanceRecord[courseIndex];
-
-      present = daysPresent;
-      absent = totalClasses - attendanceRecord[courseIndex].daysPresent;
-      percentage = ((daysPresent / totalClasses) * 100).toFixed();
-    }
+    const presentValue = parseInt(present, 10);
+    const classesValue = parseInt(classes, 10);
+    const percent = ((presentValue / classesValue) * 100);
 
     return {
       sn: index + 1,
       course: title,
       courseCode: code,
-      present: present ?? 0,
-      absent: absent ?? 0,
-      percentage: percentage ?? 0,
+      present: present || 0,
+      absent: absent || 0,
+      percentage: percent || 0,
     };
   });
 

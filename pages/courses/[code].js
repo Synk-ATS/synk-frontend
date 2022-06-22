@@ -1,4 +1,4 @@
-/* eslint-disable react/forbid-prop-types,no-unused-expressions */
+/* eslint-disable react/forbid-prop-types,no-unused-expressions,no-multi-assign */
 
 import React from 'react';
 import { gql, useMutation } from '@apollo/client';
@@ -42,19 +42,6 @@ const UpdateAttendanceQuery = gql`
     }
 `;
 
-const UpdateStudentAttendanceRecord = gql`
-  mutation UpdateStudentRecord($id: ID!, $record: JSON!) {
-    updateStudent(id: $id, data: { attendanceRecord: $record }) {
-      data {
-        id
-        attributes {
-          attendanceRecord
-        }
-      }
-    }
-  }
-`;
-
 function Code({ course, attendance }) {
   const router = useRouter();
   const [css] = useStyletron();
@@ -76,13 +63,6 @@ function Code({ course, attendance }) {
     context: { headers: { Authorization: `Bearer ${jwt}` } },
   });
 
-  const [updateStudentAttendanceRecord] = useMutation(
-    UpdateStudentAttendanceRecord,
-    {
-      context: { headers: { Authorization: `Bearer ${jwt}` } },
-    },
-  );
-
   const startVideo = () => {
     setModalOpen(true);
     navigator.mediaDevices
@@ -100,11 +80,6 @@ function Code({ course, attendance }) {
     camRef?.current?.srcObject?.getTracks()[0]?.stop();
     setModelsLoaded(false);
   };
-
-  const _student = course.attributes.students.data[0];
-  const _attRecord = _student.attributes?.attendanceRecord;
-
-  const _courseID = parseInt(course.id, 10);
 
   const handleVideoOnPlay = () => {
     setInterval(async () => {
@@ -165,43 +140,6 @@ function Code({ course, attendance }) {
 
         if (bestMatch.label !== 'unknown' && bestMatch.distance <= 0.6) {
           content[studentIndex].status = true;
-
-          if (_attRecord === null || _attRecord === undefined) {
-            const _record = [{ course: _courseID, daysPresent: 1 }];
-
-            try {
-              await updateStudentAttendanceRecord({
-                variables: { id: _student.id, record: JSON.stringify(_record) },
-              });
-            } catch (e) {
-              // console.log(e);
-            }
-          }
-
-          if (_attRecord !== null && _attRecord !== undefined) {
-            const courseIndex = _attRecord.findIndex((atR) => atR.course === _courseID);
-
-            if (_attRecord.filter((op) => op.course === _courseID).length > 0) {
-              const daysPresent = parseInt(_attRecord[courseIndex].daysPresent, 10);
-              _attRecord[courseIndex].daysPresent = (daysPresent + 1);
-              try {
-                await updateStudentAttendanceRecord({
-                  variables: { id: _student.id, record: JSON.stringify(_attRecord) },
-                });
-              } catch (e) {
-                // console.log(e);
-              }
-            } else {
-              _attRecord.push({ course: _courseID, daysPresent: 1 });
-              try {
-                await updateStudentAttendanceRecord({
-                  variables: { id: _student.id, record: JSON.stringify(_attRecord) },
-                });
-              } catch (e) {
-                // console.log(e);
-              }
-            }
-          }
 
           updateAttendance({
             variables: { id: attendance?.id, record: JSON.stringify(content) },
@@ -479,7 +417,6 @@ const CourseQuery = gql`
                 firstName
                 lastName
                 uid
-                attendanceRecord
                 avatar {
                   data {
                     attributes {
